@@ -1,0 +1,46 @@
+transaction_id,transaction_type,amount,date,category,sub_category
+1,Income,160.13,14/10/2025,Apps,Uber
+2,Income,86.25,13/10/2025,Apps,Uber
+3,Income,10.04,13/10/2025,Apps,Uber
+4,Income,16.41,15/10/2025,Apps,99
+5,Income,151.05,13/10/2025,Apps,99
+6,Income,63.5,11/10/2025,Apps,99
+7,Income,300.0,14/10/2025,Shows,Bares e Pubs
+8,Expense,168.38,14/10/2025,Fixed Expenses,Gas
+9,Expense,144.14,13/10/2025,Fixed Expenses,Gym
+10,Expense,80.0,13/10/2025,Fixed Expenses,Gas
+11,Expense,20.0,13/10/2025,Food and Groceries,Others
+12,Expense,42.75,11/10/2025,Food and Groceries,Supermarket
+13,Expense,2.99,10/10/2025,Food and Groceries,Others
+14,Expense,60.73,06/10/2025,Fixed Expenses,Cellphone bill
+15,Expense,57.0,04/10/2025,Utility,Internet
+16,Expense,36.0,04/10/2025,Utility,Electricity
+17,Expense,29.3,01/10/2025,Food and Groceries,Supermarket
+18,Expense,58.18,15/10/2025,Food and Groceries,Supermarket
+19,Expense,35.0,16/10/2025,Entertainment,Others 
+20,Expense,30.0,17/10/2025,Food and Groceries,Others
+21,Expense,26.0,17/10/2025,Entertainment,Shopping
+22,Expense,213.8,17/10/2025,Fixed Expenses,Gas
+23,Expense,47.79,18/10/2025,Food and Groceries,Supermarket
+24,Income,100.0,19/10/2025,Shows,Particulares
+25,Income,300.7,20/10/2025,Apps,Uber
+26,Expense,48.46,21/10/2025,Food and Groceries,Supermarket
+27,Income,34.51,22/10/2025,Apps,99
+28,Income,300.0,22/10/2025,Shows,Bares e Pubs
+29,Expense,600.0,24/10/2025,Fixed Expenses,Car payment
+30,Expense,50.0,24/10/2025,Entertainment,Others
+31,Expense,47.85,25/10/2025,Food and Groceries,Supermarket
+32,Income,50.0,17/10/2025,Shows,Particulares
+33,Income,48.1,17/10/2025,Apps,99
+34,Income,397.85,27/10/2025,Apps,Uber
+35,Expense,94.61,27/10/2025,Fixed Expenses,Car payment
+36,Expense,300.0,27/10/2025,Fixed Expenses,Car payment37,Income,20.6,27/10/2025,Apps,99
+37,Income,20.6,27/10/2025,Apps,99
+38,Expense,24.25,27/10/2025,Food and Groceries,Supermarket
+39,Income,95.68,28/10/2025,Apps,Uber
+40,Income,38.5,28/10/2025,Apps,99
+41,Expense,130.6,28/10/2025,Fixed Expenses,Gas
+42,Expense,13.23,28/10/2025,Entertainment,Others
+43,Income,32.7,30/10/2025,Apps,99
+44,Income,100.51,30/10/2025,Apps,Uber
+45,Expense,16.47,30/10/2025,Entertainment,Others

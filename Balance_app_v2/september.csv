@@ -1,0 +1,8 @@
+transaction_id,transaction_type,amount,date,category,sub_category
+1,Income,143.0,20/09/2025,Apps,Uber
+2,Expense,10.0,16/09/2025,Utility,Internet
+3,Expense,23.0,16/09/2025,Utility,Electricity
+4,Income,400.0,16/09/2025,Shows,Bares e Pubs
+5,Expense,120.0,16/09/2025,Fixed Expenses,Gym
+Income,300
+Income,300

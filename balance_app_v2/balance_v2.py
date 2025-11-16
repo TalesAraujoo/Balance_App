@@ -2,9 +2,11 @@ import csv, ast, calendar
 from datetime import date, time, datetime, timedelta
 from pathlib import Path
 
+#git test
 #This sets the csv month file to the current month as a standard...globally
 today = datetime.today()
 month_file = today.strftime("%B").lower() + '.csv'
+SCRIPT_DIR = Path(__file__).parent.resolve()
 
 
 def show_menu():
@@ -144,7 +146,8 @@ def get_category(transaction_type):
     else:
         file = 'income'
 
-    with open(f'.//{file}_database_v2.csv') as csvfile:
+    db_path = SCRIPT_DIR / f"{file}_database_v2.csv"
+    with open(db_path) as csvfile:
         fnames = ['category', 'sub_category']
         reader = csv.DictReader(csvfile, fieldnames=fnames)
 
@@ -179,7 +182,9 @@ def get_sub_category(transaction_type, category):
     else:
         file = 'income'
 
-    with open(f'.//{file}_database_v2.csv') as csvfile:
+    db_path = SCRIPT_DIR / f'{file}_database_v2.csv'
+
+    with open(db_path) as csvfile:
         fnames = ['category', 'sub_category']
         reader = csv.DictReader(csvfile, fieldnames=fnames)
 
@@ -212,7 +217,8 @@ def get_sub_category(transaction_type, category):
                     
 
 def get_transaction_id():
-    with open(f'.\{month_file}') as csvfile:
+    db_path = SCRIPT_DIR / month_file
+    with open(db_path) as csvfile:
         fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
         reader = csv.DictReader(csvfile, fieldnames=fnames)
         
@@ -272,7 +278,8 @@ def dict_validation(tmp_dict):
 
 
 def add_transaction():
-    with open(f'.//{month_file}', 'a', newline='') as csvfile: 
+    db_path = SCRIPT_DIR / month_file
+    with open(db_path, 'a', newline='') as csvfile: 
                
         tmp_dict = create_dict()
         final_dict = dict_validation(tmp_dict)
@@ -299,7 +306,8 @@ def show_report():
 
 
 def show_simple_report():
-    with open(f'.\{month_file}', 'r', newline = '') as csvfile:
+    db_path = SCRIPT_DIR / month_file
+    with open(db_path, 'r', newline = '') as csvfile:
         reader = csv.DictReader(csvfile)
         
         total_income = 0
@@ -321,7 +329,8 @@ def show_simple_report():
 
 
 def show_detailed_report():
-    with open(f'.\{month_file}') as csvfile:
+    db_path = SCRIPT_DIR / month_file
+    with open(db_path) as csvfile:
         reader = csv.DictReader(csvfile)
 
         total_apps = 0
@@ -354,10 +363,12 @@ def show_detailed_report():
                     total_food_groceries += float(item['amount'])
                     if item['sub_category'] == 'Supermarket':
                         total_market += float(item['amount'])
+
                 elif item['category'] == 'Fixed Expenses':
                     total_fixed_expenses += float(item['amount'])
                     if item['sub_category'] == 'Gas':
                         total_gas += float(item['amount'])
+
                 elif item['category'] == 'Utility':
                     total_utilities += float(item['amount'])
                 elif item['category'] == 'Entertainment':
@@ -410,8 +421,8 @@ def show_per_period_report():
 
 
 def get_weekly_report():
-    
-    with open(f'.\{month_file}') as csvfile:
+    db_path = SCRIPT_DIR / month_file
+    with open(db_path) as csvfile:
         reader = csv.DictReader(csvfile)
 
 
@@ -546,7 +557,8 @@ def get_monthly_report():
     today = date.today()
     start_of_month = today - timedelta(days = today.day - 1)
     
-    with open(f'.\{month_file}') as csvfile:
+    db_path = SCRIPT_DIR / month_file
+    with open(db_path) as csvfile:
         reader = csv.DictReader(csvfile)
 
         total_income = 0
@@ -589,14 +601,15 @@ def get_year_report():
     total_expenses = 0
     total_gas = 0
     total_market = 0
+
     
     for x in range(1, 13):
         fake_date = datetime(2025, x, 1)
         tmp_month_file = fake_date.strftime("%B").lower() + '.csv'
-        file_path = Path(f'{tmp_month_file}')
-    
-        if file_path.exists():
-            with open(f'./{tmp_month_file}') as csvfile:
+        db_path = SCRIPT_DIR / tmp_month_file
+
+        if db_path.exists():
+            with open(db_path) as csvfile:
                 reader = csv.DictReader(csvfile)
 
                 for row in reader:
@@ -664,11 +677,11 @@ def specific_date_calc(start_date, end_date):
 
         fake_date = datetime(2025, x, 1)
         tmp_month_file = fake_date.strftime("%B").lower() + '.csv'
-        file_path = Path(f'{tmp_month_file}')
+        db_path = SCRIPT_DIR / tmp_month_file
 
-        if file_path.exists():
+        if db_path.exists():
 
-            with open(f'./{tmp_month_file}') as csvfile:
+            with open(db_path) as csvfile:
                 reader = csv.DictReader(csvfile)
 
                 for row in reader:
@@ -695,7 +708,7 @@ def specific_date_calc(start_date, end_date):
 
 
 def run_test():
-    show_main_menu()
+    print(str(month_file.name))
 
 
 show_menu()

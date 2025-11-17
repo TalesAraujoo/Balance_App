@@ -1,46 +1,177 @@
-from transaction import Transaction
-from database.crud import insert_transaction_type
+def title_generator(title):
+    return f'\n------ {title} ------\n'
 
 
-def settings_menu():
+def enter_to_continue():
+    input('\nPress ENTER to continue...')
 
-    print('\n------ Settings ------\n')
-    print('1. Transaction type')
-    print('2. Category')
-    print('3. Sub category')
 
+def get_option():
     option = input('\nChoose an option: ')
-    
-    match option:
-        case '1':
-            transaction_type_settings()
-
-
-def transaction_type_settings():
-    print('\n------ Transaction type Settings ------\n')
-    print('1. Add new type')
-    print('2. Edit a type')
-    print('3. Delete a type')
-    print('4. Show existing types')
-    print('5. Main menu')
-
-    option = input('\nChoose an option: ')
-
-    match option:
-        case '1':
-            add_transaction_type()         
-        case '2':
-            pass
+    return option
 
 
 def add_transaction_type():
-    print('\n------ Add transaction type ------\n')
+    from database.crud import insert_transaction_type
+    print(title_generator('Add Transacion Type'))
     tmp_type = input('New transaction name: ')
-    tmp_args = (tmp_type,)
-    insert_transaction_type(tmp_args)
+
+    print('')
+    print(f'Item to create: {tmp_type}')
+    confirm = input('Is this correct (y/n)? ')
+
+    if confirm == 'y':
+        tmp_args = (tmp_type,)
+        insert_transaction_type(tmp_args)
+    elif confirm == '':
+        return
+    else:
+        add_transaction_type()
+
+
+def show_existing_transaction_type():
+    from database.crud import select_transaction_types
+    tmp_types_list = select_transaction_types()
+    
+    print(title_generator('Existing types'))
+    for i, tmp in enumerate(tmp_types_list, start = 1):
+        print(f'{i}. {tmp['type']}')
+    
+    enter_to_continue()
+
+#sends 'strings' of parameters to CRUD
+def edit_transaction_type():
+    from database.crud import select_transaction_types, update_transaction_type
+    tmp_types_list = select_transaction_types()
+
+    print(title_generator('Existing Types'))
+    for i, tmp in enumerate(tmp_types_list, start = 1):
+        print(f'{i}. {tmp['type']}')
+
+    print('')
+    option = input('Type which one you want to edit: ')
+    tmp_new_type = input("Type the new type's name: ")
+
+    print('')
+    print(f'You have selected: {option}. {tmp_new_type}')
+    choice_option = input('Is this correct(y/n)? ')
+    tmp_id = tmp_types_list[int(option) - 1]['id']
+
+    if choice_option == 'y':
+        update_transaction_type(tmp_new_type, tmp_id)
+    else: 
+        edit_transaction_type()
+
+# sends the 'dictionary' [id, type] to CRUD
+def exclude_transaction_type():
+    from database.crud import delete_transaction_type, select_transaction_types
+    tmp_type_list = select_transaction_types()
+
+    print(title_generator('Delete type'))
+    for i, tmp in enumerate(tmp_type_list, start = 1):
+        print(f'{i}. {tmp['type']}')
+    
+    print('')
+    option = input('Which one do you want to DELETE? ')
+
+    print('')
+    print(f'You have selected: {tmp_type_list[int(option)-1]['type']}')
+    decision = input('Are you sure(y/n)? ')
+
+    if decision == 'y':
+        delete_transaction_type(tmp_type_list[int(option)-1])
+    else:
+        exclude_transaction_type()
+
+
+def add_category():
+    from database.crud import insert_category
+    print(title_generator('Add new category'))
+    tmp_category = input("Category: ")
+    
+    print('')
+    print(f'Item to create: {tmp_category}')
+    confirm = input('Is this correct (y/n)? ')
+
+    if confirm == 'y':
+        tmp_args = (tmp_category,)
+        insert_category(tmp_args)
+    elif confirm == '':
+        return
+    else:
+        add_category()
+
+
+def show_category():
+    from database.crud import select_category
+    print(title_generator('Show categories'))
+
+    tmp_list = select_category()
+
+    if tmp_list:
+        for i, tmp in enumerate(tmp_list, start = 1):
+            print(f'{i}. {tmp['category']}')
+    else:
+        print('No data available') 
+
+
+def edit_category():
+    from database.crud import update_category, select_category
+
+    print(title_generator('Edit category'))
+    tmp_list = select_category()
+
+    if tmp_list:
+        for i, tmp in enumerate(tmp_list, start = 1):
+            print(f'{i}. {tmp['category']}')
+        
+        option = input('\nWhat category: ')
+        int(option)
+        tmp_category = input('New category: ')
+
+        print('')
+        confirm = input(f'Item to edit: {tmp_category}')
+        print('Is this correct (y/n)? ')
+
+        if confirm == 'y':
+            update_category(tmp_list[option-1], tmp_category)
+        elif confirm == '':
+            return
+        else:
+            edit_category()
+ 
+    else:
+        print('No data available')
+
+
+def exclude_category():
+    from database.crud import delete_category, select_category
+    
+    print(title_generator('Delete category'))
+
+    tmp_list = select_category()
+
+    if tmp_list:
+        for i, tmp in enumerate(tmp_list, start = 1):
+            print(f'{i}. {tmp['category']}')
+
+        print('')    
+        option = input('Which one do you want to delete? ')
+        tmp_index = int(option) - 1
+        print(f'You have selected: {option}. {tmp_list[tmp_index]['category']}')
+        confirm = input('Is this correct (y/n)? ')
+
+        if confirm == 'y':
+            print('test')
+            delete_category(tmp_list[tmp_index])
+        elif confirm == '':
+            return
+        else:
+            exclude_category()
 
 
 def add_transaction_ui():
+    from transaction import Transaction
     transaction_type = ''
     amount = ''
     date = ''

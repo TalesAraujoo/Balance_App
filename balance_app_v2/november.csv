@@ -49,3 +49,7 @@ transaction_id,transaction_type,amount,date,category,sub_category
 48,Expense,28.0,14/11/2025,Entertainment,Others
 49,Expense,223.29,14/11/2025,Fixed Expenses,Gas
 50,Expense,30.17,14/11/2025,Food and Groceries,Supermarket
+51,Income,100.0,16/11/2025,Shows,Particulares
+52,Expense,19.0,16/11/2025,Entertainment,Shopping
+53,Expense,19.0,16/11/2025,Entertainment,Shopping
+54,Income,133.22,16/11/2025,Apps,99

@@ -79,7 +79,7 @@ def delete_transaction_type(tmp_type):
         except ProgrammingError as e: 
             return e.msg
         
-# ------ category ------    
+# ------- category -------    
 def insert_category(category):
     sql = """
         INSERT INTO category
@@ -152,3 +152,80 @@ def delete_category(tmp_item):
             connection.commit()
         except ProgrammingError as e:
             return e.msg
+
+
+# ------- sub-category -------
+def insert_sub_category(sub_category):
+    sql = """
+        INSERT INTO sub_category
+            (sub_category)
+        VALUES 
+            (%s)
+    """
+
+    args = sub_category
+
+    with new_connection() as connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute(sql, args)
+            connection.commit()
+        
+        except ProgrammingError as e:
+            return e.msg
+
+
+def select_sub_category():
+    sql = """
+        SELECT * FROM sub_category
+    """
+
+    with new_connection() as connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(sql)
+            rows = cursor.fetchall()
+            return rows
+
+        except ProgrammingError as e:
+            return e.msg
+        
+
+def update_sub_category(tmp_item, tmp_sub_category):
+    sql = """
+        UPDATE sub_category
+        SET sub_category = %s
+        WHERE id = %s
+    """
+
+    args = (tmp_sub_category, tmp_item['id'])
+
+
+    with new_connection() as connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute(sql, args)
+            connection.commit()
+
+        except ProgrammingError as e:
+            return e.msg
+
+
+def delete_sub_category(tmp_item):
+    sql = """
+        DELETE FROM sub_category
+        WHERE id = %s
+    """
+
+    args = (tmp_item['id'],)
+
+
+    with new_connection() as connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute(sql, args)
+            connection.commit()
+
+        except ProgrammingError as e:
+            return e.msg
+     

@@ -1,6 +1,7 @@
 from balance_utils import get_option, add_transaction_ui, title_generator, enter_to_continue
 from balance_utils import add_transaction_type, show_existing_transaction_type, edit_transaction_type, exclude_transaction_type
 from balance_utils import add_category, show_category, edit_category, exclude_category
+from balance_utils import add_sub_category, show_sub_category, edit_sub_category, exclude_sub_category
 
 
 def show_menu():
@@ -23,8 +24,11 @@ def show_menu():
         case '4':
             settings_menu()
             show_menu()
-        case 5:
-            pass
+        case '5':
+            print('Exiting program...')
+        case _:
+            print('\nChoose a valid option.')
+            enter_to_continue()
 
 
 def settings_menu():
@@ -33,12 +37,17 @@ def settings_menu():
     print('1. Transaction type')
     print('2. Category')
     print('3. Sub category')
+    print('0. Main menu')
 
     match get_option():
         case '1':
             transaction_type_settings()
         case '2':
             categories_settings()
+        case '3':
+            sub_categories_settings()
+        case '0': 
+            show_menu()
 
 
 def transaction_type_settings():
@@ -47,7 +56,7 @@ def transaction_type_settings():
     print('2. Edit a type')
     print('3. Delete a type')
     print('4. Show existing types')
-    print('5. Main menu')
+    print('0. Main menu')
 
     match get_option():
         case '1':
@@ -58,6 +67,9 @@ def transaction_type_settings():
             exclude_transaction_type()
         case '4':
             show_existing_transaction_type()
+            enter_to_continue()
+        case '0':
+            show_menu()
 
 
 def categories_settings():
@@ -66,7 +78,7 @@ def categories_settings():
     print('2. Edit category')
     print('3. Delete category')
     print('4. Show existing categories')
-    print('5. Main menu')
+    print('0. Main menu')
 
     match get_option():
         case '1':
@@ -78,9 +90,30 @@ def categories_settings():
         case '4':
             show_category()
             enter_to_continue()
-        case '5':
+        case '0':
             show_menu()
         
+
+def sub_categories_settings():
+    print(title_generator('Sub-category settings'))
+    print('1. Add sub-category')
+    print('2. Edit sub-category')
+    print('3. Delete sub-category')
+    print('4. Show existing sub-category')
+    print('0. Main menu')
+
+    match get_option():
+        case '1':
+            add_sub_category()
+        case '2':
+            edit_sub_category()
+        case '3':
+            exclude_sub_category()
+        case '4':
+            show_sub_category()
+            enter_to_continue()
+        case '0':
+            show_menu() 
 
 
 show_menu()

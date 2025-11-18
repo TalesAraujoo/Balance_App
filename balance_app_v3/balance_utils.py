@@ -37,8 +37,6 @@ def show_existing_transaction_type():
     for i, tmp in enumerate(tmp_types_list, start = 1):
         print(f'{i}. {tmp['type']}')
     
-    enter_to_continue()
-
 #sends 'strings' of parameters to CRUD
 def edit_transaction_type():
     from database.crud import select_transaction_types, update_transaction_type
@@ -168,6 +166,98 @@ def exclude_category():
             return
         else:
             exclude_category()
+
+
+def add_sub_category():
+    from database.crud import insert_sub_category
+    print(title_generator('Add Sub-category'))
+    tmp_sub_category = input('Sub-category: ')
+
+    print('')
+    print(f'Item to create: {tmp_sub_category}')
+    confirm = input('Is this correct (y/n)? ')
+
+    if confirm == 'y':
+        tmp_args = (tmp_sub_category,)
+        insert_sub_category(tmp_args)
+    elif confirm == '':
+        return
+    else:
+        add_sub_category()
+
+
+def show_sub_category():
+    from database.crud import select_sub_category
+    print(title_generator('Show sub-categories'))
+
+    tmp_list = select_sub_category()
+
+    if tmp_list:
+        for i, tmp in enumerate(tmp_list, start = 1):
+            print(f'{i}. {tmp['sub_category']}')
+
+    else:
+        print('No data available')
+
+
+def edit_sub_category():
+    from database.crud import update_sub_category, select_sub_category
+    print(title_generator('Edit sub-category'))
+
+    tmp_list = select_sub_category()
+
+    if tmp_list:
+        for i, tmp in enumerate(tmp_list, start = 1):
+            print(f'{i}. {tmp['sub_category']}')
+
+        print('')
+        option = input('Which one do you want to edit: ')
+        tmp_sub_category = input('New sub-category: ')
+        tmp_index = int(option) - 1
+
+        print('')
+        print(f'Item to edit: {option}. {tmp_list[tmp_index]['sub_category']}')
+        print(f'New item: {tmp_sub_category}')
+        confirm = input('Is this correct (y/n)? ')
+
+        if confirm == 'y':
+            update_sub_category(tmp_list[tmp_index], tmp_sub_category)
+        elif confirm == '':
+            return
+        else:
+            edit_sub_category()
+
+    else:
+        print('No data available')
+
+
+def exclude_sub_category():
+    from database.crud import delete_sub_category, select_sub_category
+    print(title_generator('Delete Sub-category'))
+
+    tmp_dict = select_sub_category()
+
+    if tmp_dict:
+        for i,tmp in enumerate(tmp_dict, start = 1):
+            print(f'{i}. {tmp['sub_category']}')
+
+        print('')
+        option = input('Which one do you want to delete? ')
+        tmp_index = int(option) - 1
+        
+        print('')
+        print(f'You have selected: {option}. {tmp_dict[tmp_index]['sub_category']} ')
+        confirm = input('Is this correct (y/n)? ')
+
+        if confirm == 'y':
+            delete_sub_category(tmp_dict[tmp_index])
+        elif confirm == '':
+            return
+        else:
+            exclude_sub_category()
+    
+    else:
+        print('No data available')
 
 
 def add_transaction_ui():

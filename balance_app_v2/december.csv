@@ -1,1 +1,12 @@
 transaction_id,transaction_type,amount,date,category,sub_category
+0,Expense,144.14,02/12/2025,Fixed Expenses,Gym
+1,Income,21.8,02/12/2025,Apps,Uber
+2,Income,69.86,02/12/2025,Apps,Uber
+3,Expense,94.1,02/12/2025,Fixed Expenses,Gas
+4,Expense,75.67,02/12/2025,Fixed Expenses,Cellphone bill
+5,Income,226.54,02/12/2025,Apps,Uber
+6,Expense,80.0,01/12/2025,Fixed Expenses,Gas
+7,Expense,20.0,01/12/2025,Entertainment,Others
+8,Income,55.23,01/12/2025,Apps,Uber
+9,Income,44.03,01/12/2025,Apps,Uber
+10,Income,60.82,01/12/2025,Apps,99

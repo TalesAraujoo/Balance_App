@@ -220,15 +220,19 @@ def get_transaction_id():
     db_path = SCRIPT_DIR / month_file
     with open(db_path) as csvfile:
         fnames = ['transaction_id','transaction_type','amount','date','category','sub_category']
-        reader = csv.DictReader(csvfile, fieldnames=fnames)
+        reader = csv.DictReader(csvfile)
         
         last = 0
         for item in reader:
             if item != None:
                 last = item['transaction_id']
-            
-        return int(last)+1 
 
+        print(last)
+        if last != 0:    
+            return int(last)+1 
+        else:
+            return int(last)
+        
 
 def create_dict():
     

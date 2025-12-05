@@ -10,3 +10,11 @@ transaction_id,transaction_type,amount,date,category,sub_category
 8,Income,55.23,01/12/2025,Apps,Uber
 9,Income,44.03,01/12/2025,Apps,Uber
 10,Income,60.82,01/12/2025,Apps,99
+11,Income,100.0,03/12/2025,Shows,Particulares
+12,Expense,5.05,03/12/2025,Entertainment,Others
+13,Income,50.0,03/12/2025,Shows,Particulares
+14,Expense,30.0,03/12/2025,Entertainment,Others
+15,Expense,178.47,03/12/2025,Fixed Expenses,Gas
+16,Income,36.73,03/12/2025,Apps,99
+17,Income,50.95,03/12/2025,Apps,Uber
+18,Income,84.56,03/12/2025,Apps,99

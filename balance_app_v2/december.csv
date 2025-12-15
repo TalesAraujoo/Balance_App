@@ -18,3 +18,26 @@ transaction_id,transaction_type,amount,date,category,sub_category
 16,Income,36.73,03/12/2025,Apps,99
 17,Income,50.95,03/12/2025,Apps,Uber
 18,Income,84.56,03/12/2025,Apps,99
+19,Income,300.0,04/12/2025,Shows,Bares e Pubs
+20,Expense,76.5,05/12/2025,Entertainment,Shopping
+21,Expense,29.56,05/12/2025,Food and Groceries,Supermarket
+22,Expense,3.59,05/12/2025,Food and Groceries,Supermarket
+23,Expense,23.0,04/12/2025,Entertainment,Shopping
+24,Expense,36.2,06/12/2025,Food and Groceries,Supermarket
+25,Expense,28.0,05/12/2025,Entertainment,Others
+26,Expense,26.2,07/12/2025,Food and Groceries,Supermarket
+27,Expense,12.0,14/12/2025,Entertainment,Shopping
+28,Expense,10.0,14/12/2025,Food and Groceries,Supermarket
+29,Expense,16.15,14/12/2025,Food and Groceries,Supermarket
+30,Expense,28.0,14/12/2025,Entertainment,Others
+31,Income,100.0,13/12/2025,Shows,Particulares
+32,Expense,16.15,13/12/2025,Food and Groceries,Supermarket
+33,Expense,45.0,13/12/2025,Entertainment,Others
+34,Expense,22.0,12/12/2025,Entertainment,Others
+35,Expense,24.9,12/12/2025,Entertainment,Others
+36,Income,300.0,11/12/2025,Shows,Bares e Pubs
+37,Income,44.85,10/12/2025,Apps,99
+38,Expense,40.5,09/12/2025,Food and Groceries,Supermarket
+39,Expense,223.16,08/12/2025,Fixed Expenses,Gas
+40,Income,350.01,08/12/2025,Apps,Uber
+41,Expense,199.0,08/12/2025,Entertainment,Others

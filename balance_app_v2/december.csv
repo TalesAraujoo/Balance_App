@@ -41,3 +41,9 @@ transaction_id,transaction_type,amount,date,category,sub_category
 39,Expense,223.16,08/12/2025,Fixed Expenses,Gas
 40,Income,350.01,08/12/2025,Apps,Uber
 41,Expense,199.0,08/12/2025,Entertainment,Others
+42,Income,191.5,15/12/2025,Apps,Uber
+43,Expense,40.0,17/12/2025,Entertainment,Others
+44,Expense,20.0,17/12/2025,Entertainment,Others
+45,Expense,44.64,16/12/2025,Entertainment,Shopping
+46,Income,600.0,16/12/2025,Shows,Bares e Pubs
+47,Expense,184.12,16/12/2025,Fixed Expenses,Gas

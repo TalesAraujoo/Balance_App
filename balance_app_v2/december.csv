@@ -47,3 +47,6 @@ transaction_id,transaction_type,amount,date,category,sub_category
 45,Expense,44.64,16/12/2025,Entertainment,Shopping
 46,Income,600.0,16/12/2025,Shows,Bares e Pubs
 47,Expense,184.12,16/12/2025,Fixed Expenses,Gas
+48,Expense,74.01,18/12/2025,Food and Groceries,Supermarket
+49,Expense,99.0,18/12/2025,Entertainment,Shopping
+50,Expense,207.55,18/12/2025,Entertainment,Shopping

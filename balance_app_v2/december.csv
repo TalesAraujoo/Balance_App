@@ -50,3 +50,12 @@ transaction_id,transaction_type,amount,date,category,sub_category
 48,Expense,74.01,18/12/2025,Food and Groceries,Supermarket
 49,Expense,99.0,18/12/2025,Entertainment,Shopping
 50,Expense,207.55,18/12/2025,Entertainment,Shopping
+51,Expense,10.0,23/12/2025,Food and Groceries,Supermarket
+52,Expense,53.7,23/12/2025,Food and Groceries,Supermarket
+53,Expense,32.93,22/12/2025,Food and Groceries,Supermarket
+54,Expense,9.0,22/12/2025,Entertainment,Shopping
+55,Income,114.2,22/12/2025,Apps,99
+56,Income,522.46,22/12/2025,Apps,Uber
+57,Expense,32.0,21/12/2025,Entertainment,Others
+58,Expense,34.0,19/12/2025,Entertainment,Others
+59,Expense,22.7,19/12/2025,Entertainment,Others

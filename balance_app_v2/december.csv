@@ -59,3 +59,16 @@ transaction_id,transaction_type,amount,date,category,sub_category
 57,Expense,32.0,21/12/2025,Entertainment,Others
 58,Expense,34.0,19/12/2025,Entertainment,Others
 59,Expense,22.7,19/12/2025,Entertainment,Others
+60,Income,33.01,30/12/2025,Apps,99
+61,Expense,141.37,30/12/2025,Fixed Expenses,College
+62,Expense,31.78,30/12/2025,Food and Groceries,Supermarket
+63,Income,136.47,29/12/2025,Apps,Uber
+64,Expense,50.22,28/12/2025,Food and Groceries,Supermarket
+65,Expense,226.04,27/12/2025,Fixed Expenses,Gas
+66,Expense,19.0,27/12/2025,Entertainment,Others
+67,Income,137.0,27/12/2025,Shows,Particulares
+68,Expense,36.9,27/12/2025,Entertainment,Shopping
+69,Expense,36.13,26/12/2025,Food and Groceries,Supermarket
+70,Expense,39.9,26/12/2025,Entertainment,Shopping
+71,Expense,1200.0,24/12/2025,Fixed Expenses,Car payment
+72,Income,600.0,24/12/2025,Shows,Bares e Pubs

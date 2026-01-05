@@ -32,7 +32,7 @@ def create_tables():
     CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
-        color TEXT DEFAULT '#888888',
+        color TEXT,
         icon TEXT
     )
     """)
@@ -41,7 +41,10 @@ def create_tables():
     CREATE TABLE IF NOT EXISTS labels (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT UNIQUE,
-        color TEXT DEFAULT '#888888'
+        color TEXT,
+        category_id INTEGER,
+        FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE,
+        UNIQUE (name, category_id)  -- Prevents duplicated labels with the same category
     )
     """)
 
@@ -59,6 +62,25 @@ def create_tables():
     """)
 
     print("Tables created successfully.")
+
+
+def get_categories():
+    query = QSqlQuery("""
+                    SELECT id, name, color, icon
+                    FROM categories
+                    """)
+
+    categories = []
+
+    while query.next():
+        categories.append({
+            "id": query.value(0),
+            "name": query.value(1),
+            "color": query.value(2),
+            "icon": query.value(3)
+        })
+    
+    return categories
 
 
 if __name__ == "__main__":

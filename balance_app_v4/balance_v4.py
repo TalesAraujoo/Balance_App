@@ -1,8 +1,18 @@
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
+    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedWidget
 )
 from PyQt6.QtCore import Qt, QEvent
 from Data.db_utils import db_init, create_tables
+from AppUtils.balance_utils import SettingsPage, AddTransactionPage, CategoriesLabelsSettings
+
+
+class PlaceHolderWidget(QWidget):
+    def __init__(self, text):
+        super().__init__()
+        layout = QVBoxLayout(self)
+        label = QLabel(text)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(label)
 
 
 class BalanceApp(QWidget):
@@ -51,32 +61,47 @@ class BalanceApp(QWidget):
         self.title_layout.addWidget(self.btn_close)
 
         # Content 
-        self.header_switch = QHBoxLayout()
-        self.header_income = QPushButton("Income")
-        self.header_expense = QPushButton("Expense")
-        self.header_switch.addWidget(self.header_income)
-        self.header_switch.addWidget(self.header_expense)
+        self.content_stack = QStackedWidget()
+        self.content_stack.setMouseTracking(True)
 
-        self.content_area = QLabel("content Area")
-        self.content_area.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #Creating pages with the PlaceHolderWidget class
+        self.overview_page = PlaceHolderWidget("Overview Page")
+        self.history_page = PlaceHolderWidget("History Page")
+        self.add_transaction_page = AddTransactionPage()
+        self.calendar_page = PlaceHolderWidget("Calendar Page")
+        self.settings_page = SettingsPage()
+        self.categories_labels_page = CategoriesLabelsSettings()
 
-        self.bottom_menu = QHBoxLayout()
-        self.overview = QPushButton("Overview")
-        self.history = QPushButton("History")
-        self.add_transaction = QPushButton("+")
-        self.calendar_view = QPushButton("Calendar")
-        self.settings = QPushButton("Settings")
-        self.bottom_menu.addWidget(self.overview)
-        self.bottom_menu.addWidget(self.history)
-        self.bottom_menu.addWidget(self.add_transaction)
-        self.bottom_menu.addWidget(self.calendar_view)
-        self.bottom_menu.addWidget(self.settings)
+        #temporary
+        self.settings_page.cat_labels.clicked.connect(lambda: self.content_stack.setCurrentWidget(self.categories_labels_page))
+
+        #Pages inside the QStackedWidget in order, indices matter
+        self.content_stack.addWidget(self.overview_page)        #0
+        self.content_stack.addWidget(self.history_page)         #1
+        self.content_stack.addWidget(self.add_transaction_page) #2
+        self.content_stack.addWidget(self.calendar_page)        #3
+        self.content_stack.addWidget(self.settings_page)        #4
+        self.content_stack.addWidget(self.categories_labels_page)
+        self.content_stack.setCurrentIndex(0) #starts at 0, overview page
+ 
+        self.bottom_bar = QWidget()
+        self.bottom_bar.setFixedHeight(50)
+        self.bottom_menu = QHBoxLayout(self.bottom_bar)
+        self.btn_overview = QPushButton("Overview")
+        self.btn_history = QPushButton("History")
+        self.btn_add_transaction = QPushButton("+")
+        self.btn_calendar_view = QPushButton("Calendar")
+        self.btn_settings = QPushButton("Settings")
+        self.bottom_menu.addWidget(self.btn_overview)
+        self.bottom_menu.addWidget(self.btn_history)
+        self.bottom_menu.addWidget(self.btn_add_transaction)
+        self.bottom_menu.addWidget(self.btn_calendar_view)
+        self.bottom_menu.addWidget(self.btn_settings)
         
-        # Main Layout settings       
+        # Main Layout btn_settings       
         self.main_layout.addWidget(self.title_bar)
-        self.main_layout.addLayout(self.header_switch)
-        self.main_layout.addWidget(self.content_area)
-        self.main_layout.addLayout(self.bottom_menu)
+        self.main_layout.addWidget(self.content_stack)
+        self.main_layout.addWidget(self.bottom_bar)
         self.setLayout(self.main_layout)
 
         # title bar buttons
@@ -84,7 +109,17 @@ class BalanceApp(QWidget):
         self.btn_max.clicked.connect(self.toggle_max_restore)
         self.btn_close.clicked.connect(self.close)
 
+        # bottom bar buttons
+        self.btn_overview.clicked.connect(lambda: self.content_stack.setCurrentIndex(0))
+        self.btn_history.clicked.connect(lambda: self.content_stack.setCurrentIndex(1))
+        self.btn_add_transaction.clicked.connect(lambda: self.content_stack.setCurrentIndex(2))
+        self.btn_calendar_view.clicked.connect(lambda: self.content_stack.setCurrentIndex(3))
+        self.btn_settings.clicked.connect(lambda: self.content_stack.setCurrentIndex(4))
     
+
+    def show_settings_page(self):
+        tmp_test = QLabel()
+
     def keyPressEvent(self, event):
         key = event.key()
         modifiers = event.modifiers()

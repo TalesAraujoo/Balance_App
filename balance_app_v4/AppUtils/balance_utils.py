@@ -1,8 +1,10 @@
 from PyQt6.QtWidgets import(
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem,
+    QDialog, QLineEdit
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from Data.db_utils import get_categories
+from Data.db_utils import get_categories, insert_categories, update_categories, delete_categories
+
 
 class SettingsPage(QWidget):
     navigate = pyqtSignal(str)
@@ -47,8 +49,9 @@ class CategoriesLabelsSettings(QWidget):
 
         self.layout.addWidget(QLabel("Categories"))
         self.categories_table = QTableWidget()
-        self.categories_table.setColumnCount(2)
-        self.categories_table.setHorizontalHeaderLabels(['Name', 'Color'])
+        self.categories_table.setColumnCount(4)
+        self.categories_table.setHorizontalHeaderLabels(['Name', 'Color', 'Icon', 'ID'])
+        self.categories_table.hideColumn(3)
 
         self.layout.addWidget(self.categories_table)
 
@@ -84,6 +87,10 @@ class CategoriesLabelsSettings(QWidget):
         self.layout.addStretch()
 
 
+        self.add_category_btn.clicked.connect(self.add_category)
+        self.edit_category_btn.clicked.connect(self.edit_category)
+        self.remove_category_btn.clicked.connect(self.remove_category)
+
     def show_categories(self):
         categories_list = get_categories()
         self.categories_table.setRowCount(0)
@@ -92,9 +99,150 @@ class CategoriesLabelsSettings(QWidget):
 
         for cat in categories_list:
             self.categories_table.insertRow(row)
-            self.categories_table.setItem(row, 0, QTableWidgetItem(cat["id"]))
-            self.categories_table.setItem(row, 1, QTableWidgetItem(cat["name"]))
-            self.categories_table.setItem(row, 2, QTableWidgetItem(cat["color"]))
-            self.categories_table.setItem(row, 3, QTableWidgetItem(cat["icon"]))
-
+            self.categories_table.setItem(row, 0, QTableWidgetItem(cat["name"]))
+            self.categories_table.setItem(row, 1, QTableWidgetItem(cat["color"]))
+            self.categories_table.setItem(row, 2, QTableWidgetItem(cat["icon"]))
+            self.categories_table.setItem(row, 3, QTableWidgetItem(str(cat["id"])))
             row += 1
+
+            # print(f'id: {cat["id"]}, name: {cat["name"]}, color: {cat["color"]}')
+
+    
+    def add_category(self):
+        dialog = QDialog()
+        dialog.setWindowTitle("Add Category")
+        tmp_wind = QVBoxLayout(dialog)
+        
+        row1 = QHBoxLayout()
+        row2 = QHBoxLayout()
+        row3 = QHBoxLayout()
+        
+        row1.addWidget(QLabel("Name:"))
+        name_input = QLineEdit()
+        row1.addWidget(name_input)
+        tmp_wind.addLayout(row1)
+
+        row2.addWidget(QLabel("Color:"))
+        color_input = QLineEdit()
+        row2.addWidget(color_input)
+        tmp_wind.addLayout(row2)
+
+        btn_ok = QPushButton("Ok")
+        btn_cancel = QPushButton("Cancel")
+        row3.addWidget(btn_ok)
+        row3.addWidget(btn_cancel)
+        tmp_wind.addLayout(row3)
+
+        # signals 
+        btn_ok.clicked.connect(dialog.accept)
+        btn_cancel.clicked.connect(dialog.reject)
+
+        result = dialog.exec()
+
+        # Read values after dialog closes
+
+        if result == QDialog.DialogCode.Accepted:
+            name = name_input.text()
+            color = color_input.text()
+            print(f'Add Category: {name}, {color}')
+
+            insert_categories(name, color)
+            self.show_categories()
+
+        else:
+            print("canceled")
+
+
+    def edit_category(self):
+        dialog = QDialog()
+        dialog.setWindowTitle("Edit Category")
+        tmp_wind = QVBoxLayout(dialog)
+
+        current_row = self.categories_table.currentRow()
+        
+        if current_row >= 0:
+            row1 = QHBoxLayout()
+            row2 = QHBoxLayout()
+            row3 = QHBoxLayout()
+            
+            row1.addWidget(QLabel("Name:"))
+            name_input = QLineEdit()
+            name_input.setText(self.categories_table.item(current_row, 0).text())
+            row1.addWidget(name_input)
+            tmp_wind.addLayout(row1)
+
+            row2.addWidget(QLabel("Color:"))
+            color_input = QLineEdit()
+            color_input.setText(self.categories_table.item(current_row, 1).text())
+            row2.addWidget(color_input)
+            tmp_wind.addLayout(row2)
+
+            btn_ok = QPushButton("Ok")
+            btn_cancel = QPushButton("Cancel")
+            row3.addWidget(btn_ok)
+            row3.addWidget(btn_cancel)
+            tmp_wind.addLayout(row3)
+
+            id_item = self.categories_table.item(current_row, 3)
+            cat_id = int(id_item.text())
+
+            # signals 
+            btn_ok.clicked.connect(dialog.accept)
+            btn_cancel.clicked.connect(dialog.reject)
+
+            result = dialog.exec()
+
+            if result == QDialog.DialogCode.Accepted:
+                name = name_input.text()
+                color = color_input.text()
+                
+                print(f'Edit categories: {name}, {color}, {cat_id}')
+
+                update_categories(name, color, cat_id)
+                self.show_categories()
+
+        else:
+            return
+        
+    
+    def remove_category(self):
+        dialog = QDialog()
+        dialog.setWindowTitle("Delete Category")
+
+        current_row = self.categories_table.currentRow()
+
+        if current_row >= 0:
+            layout = QVBoxLayout(dialog)
+
+            row1 = QHBoxLayout()
+            row1.addWidget(QLabel("Name:"))
+            name = self.categories_table.item(current_row, 0).text()
+            row1.addWidget(QLabel(name))
+
+            row2 = QHBoxLayout()
+            row2.addWidget(QLabel("Color:"))
+            color = self.categories_table.item(current_row, 1).text()
+            row2.addWidget(QLabel(color))
+
+            row3 = QHBoxLayout()
+            ok_btn = QPushButton("OK")
+            cancel_btn = QPushButton("Cancel")
+            row3.addWidget(ok_btn)
+            row3.addWidget(cancel_btn)
+
+            layout.addLayout(row1)
+            layout.addLayout(row2)
+            layout.addLayout(row3)
+
+            ok_btn.clicked.connect(dialog.accept)
+            cancel_btn.clicked.connect(dialog.reject)
+
+            item_id = self.categories_table.item(current_row, 3)
+            cat_id = int(item_id.text())
+
+            result = dialog.exec()
+
+            if result == QDialog.DialogCode.Accepted:
+                delete_categories(cat_id)
+                self.show_categories()
+

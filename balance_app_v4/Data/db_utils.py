@@ -61,7 +61,7 @@ def create_tables():
     )
     """)
 
-    print("Tables created successfully.")
+    # print("Tables created successfully.")
 
 
 def get_categories():
@@ -134,7 +134,47 @@ def delete_categories(cat_id):
     return True
 
 
+def get_labels():
+    query = QSqlQuery("""
+                    SELECT * FROM labels
+                    """)
+    
+    labels_list = []
+    while query.next():
+        labels_list.append({
+            "id": query.value(0),
+            "name": query.value(1),
+            "color": query.value(2),
+            "category_id": query.value(3)
+        })
+
+    return labels_list
+
+
+def insert_labels(name, color, cat_id):
+    query = QSqlQuery("""
+                    INSERT INTO labels (name, color, category_id)
+                    VALUES (?,?,?)
+                    """)
+    
+    query.addBindValue(name)
+    query.addBindValue(color)
+    query.addBindValue(cat_id)
+
+    if not query.exec():
+        print(f"Error adding new label to DB: {query.lastError().text()}")
+        return False
+    return True
+
+
+def tmp():
+    print(get_labels())
+
+
 if __name__ == "__main__":
     app = QApplication([])
     if db_init():
         create_tables()
+        
+        
+    

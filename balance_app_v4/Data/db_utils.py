@@ -40,7 +40,7 @@ def create_tables():
     query.exec("""
     CREATE TABLE IF NOT EXISTS labels (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE,
+        name TEXT NOT NULL,
         color TEXT,
         category_id INTEGER,
         FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE,
@@ -49,13 +49,14 @@ def create_tables():
     """)
 
     query.exec("""
-    CREATE TABLE IF NOT EXISTS expenses (
+    CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        transaction_type TEXT,
         amount INTEGER NOT NULL,
-        description TEXT,
         date TEXT NOT NULL,
         category_id INTEGER,
         label_id INTEGER,
+        description TEXT,
         FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE SET NULL,
         FOREIGN KEY (label_id) REFERENCES labels (id) ON DELETE SET NULL
     )
@@ -167,14 +168,87 @@ def insert_labels(name, color, cat_id):
     return True
 
 
+def update_labels(name, color, label_id, cat_id):
+    query = QSqlQuery("""
+                    UPDATE labels
+                      SET name = ?, color = ?, category_id = ?
+                      WHERE id = ?
+                    """)
+    
+    query.addBindValue(name)
+    query.addBindValue(color)
+    query.addBindValue(cat_id)
+    query.addBindValue(label_id)
+
+    if not query.exec():
+        print(f"Error updating Label Item: {query.lastError().text()}")
+
+
+def delete_labels(label_id):
+    query = QSqlQuery("""
+                    DELETE FROM labels
+                    WHERE id = ?
+                    """)
+
+    query.addBindValue(label_id)
+
+    if not query.exec():
+        print(f"Error deleting label: {query.lastError().text()}")
+        return False
+    return True
+
+
+def insert_transaction(trans_type, amount, date, cat, lab, desc):
+    query = QSqlQuery("""
+                    INSERT INTO transactions 
+                        (transaction_type, amount, date, category_id, label_id, description)
+                    VALUES
+                        (?,?,?,?,?,?)
+                """)
+    
+    query.addBindValue(trans_type)
+    query.addBindValue(amount)
+    query.addBindValue(date)
+    query.addBindValue(cat)
+    query.addBindValue(lab)
+    query.addBindValue(desc)
+
+    if not query.exec():
+        print(f"Error saving transaction to DB: {query.lastError().text()}")
+        return False
+    return True
+
+
+def get_transactions():
+    query = QSqlQuery("""
+                    SELECT * FROM transactions
+                    """)
+
+    transaction_list = []
+
+    while query.next():
+        transaction_list.append({
+            'id': query.value(0),
+            'transaction_type': query.value(1),
+            'amount': query.value(2),
+            'date': query.value(3),
+            'category_id': query.value(4),
+            'label_id': query.value(5),
+            'description': query.value(6)
+        })
+    
+    return transaction_list
+
+
 def tmp():
-    print(get_labels())
+    query = QSqlQuery("""
+                    DROP TABLE transactions
+                """)
 
 
 if __name__ == "__main__":
     app = QApplication([])
     if db_init():
         create_tables()
-        
-        
-    
+        # tmp()
+       

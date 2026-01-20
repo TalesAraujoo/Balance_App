@@ -1,10 +1,243 @@
 from PyQt6.QtWidgets import(
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem,
-    QDialog, QLineEdit, QComboBox)
+    QDialog, QLineEdit, QComboBox, QDateEdit, QMessageBox)
 from Data.db_utils import (
     get_categories, insert_categories, update_categories, delete_categories,
-    get_labels, insert_labels)
-from PyQt6.QtCore import Qt, pyqtSignal
+    get_labels, insert_labels, update_labels, delete_labels, insert_transaction,
+    get_transactions)
+from PyQt6.QtCore import  pyqtSignal, QDate
+
+
+class AddTransactionPage(QWidget):
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout(self)
+        top_buttons = QHBoxLayout()
+        self.income_btn = QPushButton("Income")
+        self.expense_btn = QPushButton("Expense")
+        self.income_btn.setCheckable(True)
+        self.expense_btn.setCheckable(True)
+        self.income_btn.setChecked(True)
+        top_buttons.addWidget(self.income_btn)
+        top_buttons.addWidget(self.expense_btn)
+        self.transaction_type = self.get_transaction_type()
+        
+        layout.addLayout(top_buttons)
+        
+        row1 = QHBoxLayout()
+        row2 = QHBoxLayout()
+        row3 = QHBoxLayout()
+        row4 = QHBoxLayout()
+        row5 = QHBoxLayout()
+        row6 = QHBoxLayout()
+
+        amount_label = QLabel("Amount:")
+        self.amount = QLineEdit()
+        date_label = QLabel("Date:")
+        self.date = QDateEdit()
+        self.date.setDate(QDate.currentDate())
+
+        row1.addWidget(amount_label)
+        row1.addWidget(self.amount)
+        row1.addWidget(date_label)
+        row1.addWidget(self.date)
+        layout.addLayout(row1)
+
+        categories_label = QLabel("Category:")
+        self.category = QComboBox()
+               
+        labels_label = QLabel("Labels:")
+        self.label = QComboBox()
+      
+        row2.addWidget(categories_label)
+        row2.addWidget(self.category)
+        row2.addWidget(labels_label)
+        row2.addWidget(self.label)
+        layout.addLayout(row2)
+
+
+        description_label = QLabel("Description:")
+        self.description = QLineEdit()
+        row3.addWidget(description_label)
+        row3.addWidget(self.description)
+        layout.addLayout(row3)
+        
+        self.save_btn = QPushButton("Save")
+        self.cancel_btn = QPushButton("Cancel")
+        row4.addWidget(self.save_btn)
+        row4.addWidget(self.cancel_btn)
+        layout.addLayout(row4)
+
+        row5.addWidget(QLabel("Recently Added:"))
+        
+        self.expense_history = QTableWidget()
+        self.expense_history.setColumnCount(6)
+        row6.addWidget(self.expense_history)
+        layout.addLayout(row5)
+        layout.addLayout(row6)
+
+        layout.addStretch()
+        
+        self.income_btn.clicked.connect(self.set_income_check)
+        self.expense_btn.clicked.connect(self.set_expense_check)
+        self.save_btn.clicked.connect(self.add_transaction)
+        self.cancel_btn.clicked.connect(self.cancel_transaction)
+
+        self.show_recently_added()
+
+
+    def load_categories(self):
+        cat_list = get_categories()
+        for cat in cat_list:
+            self.category.addItem(cat["name"], cat["id"])
+
+
+    def load_labels(self):
+        label_list = get_labels()
+        for labItem in label_list:
+            self.label.addItem(labItem["name"], labItem["id"])
+
+
+    def set_expense_check(self):
+        self.expense_btn.setChecked(True)
+        self.income_btn.setChecked(False)
+        self.get_transaction_type()
+
+
+    def set_income_check(self):
+        self.income_btn.setChecked(True)
+        self.expense_btn.setChecked(False)
+        self.get_transaction_type()
+
+
+    def get_transaction_type(self):
+        if self.income_btn.isChecked():
+            self.transaction_type = 'Income'
+        elif self.expense_btn.isChecked():
+            self.transaction_type = 'Expense'
+
+
+    def validate_transaction(self, trans_type, amnt, date, cat, lab, desc):
+        dialog = QDialog()
+        dialog.setWindowTitle("Confirm Transaction")
+
+        layout = QVBoxLayout(dialog)
+        row1 = QHBoxLayout()
+        row2 = QHBoxLayout()
+        row3 = QHBoxLayout()
+        row4 = QHBoxLayout()
+        row5 = QHBoxLayout()
+        row6 = QHBoxLayout()
+        row7 = QHBoxLayout()
+
+        row1.addWidget(QLabel("Transaction Type:"))
+        row1.addWidget(QLabel(trans_type))
+        row2.addWidget(QLabel("Amount:"))
+        row2.addWidget(QLabel(str(amnt)))
+        row3.addWidget(QLabel("Date:"))
+        row3.addWidget(QLabel(date))
+        row4.addWidget(QLabel("Category:"))
+        row4.addWidget(QLabel(cat))
+        row5.addWidget(QLabel("Label:"))
+        row5.addWidget(QLabel(lab))
+        
+        layout.addLayout(row1)
+        layout.addLayout(row2)
+        layout.addLayout(row3)
+        layout.addLayout(row4)
+        layout.addLayout(row5)
+        
+        if desc:
+            row6.addWidget(QLabel("Description:"))
+            row6.addWidget(QLabel(desc))
+            layout.addLayout(row6)
+        
+        ok_btn = QPushButton("OK")
+        cancel_btn = QPushButton("Cancel")
+        row7.addWidget(ok_btn)
+        row7.addWidget(cancel_btn)
+        layout.addLayout(row7)
+        
+        ok_btn.clicked.connect(dialog.accept)
+        cancel_btn.clicked.connect(dialog.reject)
+
+        result = dialog.exec()
+
+        if result == QDialog.DialogCode.Accepted:
+            return True
+        else:
+            return False
+
+
+    def add_transaction(self):
+        self.get_transaction_type()
+        expense_type = self.transaction_type
+        date = self.date.date().toString('MM-dd-yyyy')
+        category = self.category.currentText()
+        label = self.label.currentText()
+        description = self.description.text()
+
+        try:
+            amount = float(self.amount.text())
+        except:
+            QMessageBox.warning(None, "Invalid input", "Enter a valid number")
+            return
+
+        if self.validate_transaction(expense_type, amount, date, category, label, description):
+            if self.category.currentData():
+                category = self.category.currentData()
+            else:
+                category = ""
+            if self.label.currentData():
+                label = self.label.currentData()
+            else:
+                category = ""
+            
+            if insert_transaction(expense_type, amount, date, category, label, description):
+                self.income_btn.setChecked(True)
+                self.expense_btn.setChecked(False)
+                self.amount.clear()            
+                self.date.setDate(QDate.currentDate())
+                self.category.setCurrentIndex(0)
+                self.label.setCurrentIndex(0)
+                self.description.clear()
+
+                self.show_recently_added()
+
+    
+    def cancel_transaction(self):
+        self.income_btn.setChecked(True)
+        self.expense_btn.setChecked(False)
+        self.amount.clear()            
+        self.date.setDate(QDate.currentDate())
+        self.category.setCurrentIndex(0)
+        self.label.setCurrentIndex(0)
+        self.description.clear()
+
+
+    def show_recently_added(self):
+        transactions = get_transactions()
+        self.expense_history.setRowCount(0)
+
+        row = 0
+        cat_pairs = {cat['id']: cat['name'] for cat in get_categories()}
+        lab_pairs = {lab['id']: lab['name'] for lab in get_labels()}
+        for item in transactions:
+            cat_name = cat_pairs.get(item['category_id'], '')
+            lab_name = lab_pairs.get(item['label_id'], '')
+
+            self.expense_history.insertRow(row)
+            self.expense_history.setItem(row, 0, QTableWidgetItem(item["transaction_type"]))
+            self.expense_history.setItem(row, 1, QTableWidgetItem(str(item["amount"])))
+            self.expense_history.setItem(row, 2, QTableWidgetItem(item["date"]))
+            self.expense_history.setItem(row, 3, QTableWidgetItem(cat_name))
+            self.expense_history.setItem(row, 4, QTableWidgetItem(lab_name))
+            if item["description"]:
+                self.expense_history.setItem(row, 5, QTableWidgetItem(item["description"]))
+
+            print(f'{item["transaction_type"]}, {item["amount"]}, {item["date"]},{item["category_id"]},{item["label_id"]},{item["description"]}')
+            
+            row += 1
 
 
 class SettingsPage(QWidget):
@@ -25,20 +258,6 @@ class SettingsPage(QWidget):
         layout.addStretch()
 
         self.cat_labels.clicked.connect(lambda: self.navigate.emit("cat_labels"))
-
-
-class AddTransactionPage(QWidget):
-    def __init__(self):
-        super().__init__()
-        layout = QVBoxLayout(self)
-        top_buttons = QHBoxLayout()
-        income_button = QPushButton("Income")
-        expense_button = QPushButton("Expense")
-        top_buttons.addWidget(income_button)
-        top_buttons.addWidget(expense_button)
-        
-        layout.addLayout(top_buttons)
-        layout.addStretch()
 
 
 class CategoriesLabelsSettings(QWidget):
@@ -66,12 +285,13 @@ class CategoriesLabelsSettings(QWidget):
         self.layout.addLayout(self.cat_btns_row)
         self.show_categories()
 
-
+        self.cat_pairs = [] #used to manipulate category_name in edit or remove buttons
         self.layout.addWidget(QLabel("Labels"))
         self.labels_table = QTableWidget()
-        self.labels_table.setColumnCount(4)
-        self.labels_table.setHorizontalHeaderLabels(["Name", "Color", "Category", "ID"])
+        self.labels_table.setColumnCount(5)
+        self.labels_table.setHorizontalHeaderLabels(["Name", "Color", "Category", "ID", "category_id"])
         self.labels_table.hideColumn(3)
+        self.labels_table.hideColumn(4)
 
         self.layout.addWidget(self.labels_table)
 
@@ -87,13 +307,13 @@ class CategoriesLabelsSettings(QWidget):
         self.show_labels()
         self.layout.addStretch()
 
-
         self.add_category_btn.clicked.connect(self.add_category)
         self.edit_category_btn.clicked.connect(self.edit_category)
         self.remove_category_btn.clicked.connect(self.remove_category)
 
         self.add_label_btn.clicked.connect(self.add_label)
         self.edit_label_btn.clicked.connect(self.edit_label)
+        self.remove_label_btn.clicked.connect(self.remove_label)
 
 
     def show_categories(self):
@@ -257,15 +477,16 @@ class CategoriesLabelsSettings(QWidget):
 
         row = 0
 
-        cat_pairs = {cat['id']: cat['name'] for cat in get_categories()}
+        self.cat_pairs = {cat['id']: cat['name'] for cat in get_categories()}
 
         for item in labels_list:
-            cat_name = cat_pairs.get(item["category_id"], '') #give cat_id otherwise gimme ''
+            cat_name = self.cat_pairs.get(item["category_id"], '') #give cat_id otherwise gimme ''
             self.labels_table.insertRow(row)
             self.labels_table.setItem(row, 0, QTableWidgetItem(item["name"]))
             self.labels_table.setItem(row, 1, QTableWidgetItem(item["color"]))
             self.labels_table.setItem(row, 2, QTableWidgetItem(cat_name))
             self.labels_table.setItem(row, 3, QTableWidgetItem(str(item["id"])))
+            self.labels_table.setItem(row, 4, QTableWidgetItem(str(item["category_id"])))
             row += 1
             # print(f"Labels: Name: {item['name']} color: {item['color']}")
 
@@ -280,21 +501,81 @@ class CategoriesLabelsSettings(QWidget):
             cat_id = dialog.category_input.currentData()
 
             insert_labels(name, color, cat_id)
-            print(name, color, cat_id)
             self.show_labels()
-        else:
-            print('Adding Label was canceled')
-
+        
 
     def edit_label(self):
         current_row = self.labels_table.currentRow()
-        name = self.labels_table.item(current_row, 0).text()
-        color = self.labels_table.item(current_row, 1).text()
-        cat_id = ''
-        dialog = AddEditLabels("Edit Label", name, color, cat_id)
-        result = dialog.exec()
+
+        if current_row >= 0:
+            name = self.labels_table.item(current_row, 0).text()
+            color = self.labels_table.item(current_row, 1).text()
+            cat_id = self.labels_table.item(current_row, 4).text()
+            
+            dialog = AddEditLabels("Edit Label", name, color, cat_id)
+            result = dialog.exec()
+
+            if result == QDialog.DialogCode.Accepted:
+                name = dialog.name_input.text()
+                color = dialog.color_input.text()
+                label_id = self.labels_table.item(current_row, 3).text()
+                cat_id = dialog.category_input.currentData()
+
+                print(f'Ok: {name}, {color}, {label_id}, {cat_id}')
+                update_labels(name, color, label_id, cat_id)
+                self.show_labels()
+        else:
+            return
 
 
+    def remove_label(self):
+        current_row = self.labels_table.currentRow()
+        
+        if current_row != -1:
+            dialog = QDialog()
+            dialog.setWindowTitle("Remove Label")
+
+            layout = QVBoxLayout(dialog)
+            row1 = QHBoxLayout()
+            row2 = QHBoxLayout()
+            row3 = QHBoxLayout()
+            row4 = QHBoxLayout()
+
+            row1.addWidget(QLabel("Name:"))
+            name_input = self.labels_table.item(current_row, 0).text()
+            row1.addWidget(QLabel(name_input))    
+            layout.addLayout(row1)
+
+            row2.addWidget(QLabel("Color:"))
+            color_input = self.labels_table.item(current_row, 1).text()
+            row2.addWidget(QLabel(color_input))
+            layout.addLayout(row2)
+
+            row3.addWidget(QLabel("Category:"))
+            cat_input = self.labels_table.item(current_row, 2).text()
+            row3.addWidget(QLabel(cat_input))
+            layout.addLayout(row3)
+
+            ok_btn = QPushButton("OK")
+            cancel_btn = QPushButton("Cancel")
+            row4.addWidget(ok_btn)
+            row4.addWidget(cancel_btn)
+            layout.addLayout(row4)
+
+            ok_btn.clicked.connect(dialog.accept)
+            cancel_btn.clicked.connect(dialog.reject)
+            
+            result = dialog.exec()
+
+            if result == QDialog.DialogCode.Accepted:
+                label_id = int(self.labels_table.item(current_row, 3).text())
+                delete_labels(label_id)
+                self.show_labels()
+            else:
+                return
+
+
+# Later I must refactor add/edit categories and transform them into a class
 class AddEditLabels(QDialog):
     def __init__(self, win_title, name = '', color = '', cat_id = ''):
         super().__init__()
@@ -327,6 +608,11 @@ class AddEditLabels(QDialog):
         for item in cat_list:
             self.category_input.addItem(item["name"], item["id"])
 
+        if cat_id:
+            index = self.category_input.findData(int(cat_id))
+            if index != -1:
+                self.category_input.setCurrentIndex(index)
+            
         row3.addWidget(self.category_input)
         layout.addLayout(row3)
 
@@ -341,7 +627,3 @@ class AddEditLabels(QDialog):
         ok_btn.clicked.connect(self.accept)
         cancel_btn.clicked.connect(self.reject)
 
-
-# Create UPDATE label in db
-# get the currentRow() category_id when Editing labels
-# create del label functions 

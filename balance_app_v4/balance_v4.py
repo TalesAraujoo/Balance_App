@@ -20,7 +20,7 @@ class BalanceApp(QWidget):
         super().__init__()
         
         self.setWindowTitle("Balance App v4")
-        self.resize(400,600)
+        self.resize(400,475)
         self.setMinimumSize(200, 200)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
 
@@ -112,10 +112,20 @@ class BalanceApp(QWidget):
         # bottom bar buttons
         self.btn_overview.clicked.connect(lambda: self.content_stack.setCurrentIndex(0))
         self.btn_history.clicked.connect(lambda: self.content_stack.setCurrentIndex(1))
-        self.btn_add_transaction.clicked.connect(lambda: self.content_stack.setCurrentIndex(2))
+        self.btn_add_transaction.clicked.connect(self.switch_add_transaction_page)
         self.btn_calendar_view.clicked.connect(lambda: self.content_stack.setCurrentIndex(3))
         self.btn_settings.clicked.connect(lambda: self.content_stack.setCurrentIndex(4))
+
     
+    # this function was made exclusively in case the user edits categories or labels
+    # if he goes back to the ADD page, the combo boxes will be updated.
+    def switch_add_transaction_page(self):
+        self.add_transaction_page.category.clear()
+        self.add_transaction_page.load_categories()
+        self.add_transaction_page.label.clear()
+        self.add_transaction_page.load_labels()
+        self.content_stack.setCurrentIndex(2)
+
 
     def show_settings_page(self):
         tmp_test = QLabel()

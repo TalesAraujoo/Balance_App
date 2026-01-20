@@ -1,1 +1,1 @@
-cat_labels.clicked.connect()
+d

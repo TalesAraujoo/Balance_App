@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedWidget
 )
-from PyQt6.QtCore import Qt, QEvent
+from PyQt6.QtCore import Qt, QEvent, QObject
 from Data.db_utils import db_init, create_tables
 from AppUtils.balance_utils import SettingsPage, AddTransactionPage, CategoriesLabelsSettings
 
@@ -294,6 +294,7 @@ class BalanceApp(QWidget):
 
 if __name__ == '__main__':
     app = QApplication([])
+    
     if db_init():
         create_tables()
     main_window = BalanceApp()

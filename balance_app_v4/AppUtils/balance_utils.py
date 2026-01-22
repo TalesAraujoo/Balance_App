@@ -1,11 +1,11 @@
 from PyQt6.QtWidgets import(
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem,
-    QDialog, QLineEdit, QComboBox, QDateEdit, QMessageBox)
+    QDialog, QLineEdit, QComboBox, QDateEdit, QMessageBox, QMenu, QDoubleSpinBox)
 from Data.db_utils import (
     get_categories, insert_categories, update_categories, delete_categories,
     get_labels, insert_labels, update_labels, delete_labels, insert_transaction,
-    get_transactions)
-from PyQt6.QtCore import  pyqtSignal, QDate
+    get_transactions, delete_transaction)
+from PyQt6.QtCore import  pyqtSignal, QDate, Qt, QLocale
 
 
 class AddTransactionPage(QWidget):
@@ -32,7 +32,14 @@ class AddTransactionPage(QWidget):
         row6 = QHBoxLayout()
 
         amount_label = QLabel("Amount:")
-        self.amount = QLineEdit()
+        self.amount = QDoubleSpinBox()
+        self.amount.setDecimals(2)
+        self.amount.setMinimum(0.00)
+        self.amount.setMaximum(999999999.99)
+        self.amount.setPrefix('$ ')
+        self.amount.setSingleStep(1)
+        self.amount.setLocale(QLocale('en_US'))
+        self.amount.clear()
         date_label = QLabel("Date:")
         self.date = QDateEdit()
         self.date.setDate(QDate.currentDate())
@@ -45,6 +52,7 @@ class AddTransactionPage(QWidget):
 
         categories_label = QLabel("Category:")
         self.category = QComboBox()
+        self.category.currentIndexChanged.connect(self.load_labels)
                
         labels_label = QLabel("Labels:")
         self.label = QComboBox()
@@ -71,7 +79,11 @@ class AddTransactionPage(QWidget):
         row5.addWidget(QLabel("Recently Added:"))
         
         self.expense_history = QTableWidget()
-        self.expense_history.setColumnCount(6)
+        self.expense_history.setColumnCount(7)
+        self.expense_history.setHorizontalHeaderLabels(['Date', 'amount', 'type', 'label', 'category', 'description', 'ID'])
+        self.expense_history.hideColumn(6)
+        self.expense_history.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.expense_history.customContextMenuRequested.connect(self.show_transaction_menu)
         row6.addWidget(self.expense_history)
         layout.addLayout(row5)
         layout.addLayout(row6)
@@ -94,8 +106,10 @@ class AddTransactionPage(QWidget):
 
     def load_labels(self):
         label_list = get_labels()
+        self.label.clear()
         for labItem in label_list:
-            self.label.addItem(labItem["name"], labItem["id"])
+            if labItem['category_id'] == self.category.currentData():
+                self.label.addItem(labItem["name"], labItem["id"])
 
 
     def set_expense_check(self):
@@ -118,6 +132,11 @@ class AddTransactionPage(QWidget):
 
 
     def validate_transaction(self, trans_type, amnt, date, cat, lab, desc):
+        if not self.amount.value():
+            QMessageBox.warning(None, 'Invalid amount', 'Amount cannot be zero')
+            return
+        
+        print(self.amount.value())
         dialog = QDialog()
         dialog.setWindowTitle("Confirm Transaction")
 
@@ -176,12 +195,14 @@ class AddTransactionPage(QWidget):
         category = self.category.currentText()
         label = self.label.currentText()
         description = self.description.text()
-
-        try:
-            amount = float(self.amount.text())
-        except:
-            QMessageBox.warning(None, "Invalid input", "Enter a valid number")
+        
+        if not self.amount.value():
+            QMessageBox.warning(None, 'Invalid amount', 'Amount cannot be zero!')
             return
+        else:
+            amount = self.amount.value()
+            amount_cents = amount * 100
+
 
         if self.validate_transaction(expense_type, amount, date, category, label, description):
             if self.category.currentData():
@@ -193,13 +214,14 @@ class AddTransactionPage(QWidget):
             else:
                 category = ""
             
-            if insert_transaction(expense_type, amount, date, category, label, description):
-                self.income_btn.setChecked(True)
-                self.expense_btn.setChecked(False)
+            if insert_transaction(expense_type, amount_cents, date, category, label, description):
+                # self.income_btn.setChecked(True)
+                # self.expense_btn.setChecked(False)
+                self.amount.setValue(0.00)
                 self.amount.clear()            
-                self.date.setDate(QDate.currentDate())
-                self.category.setCurrentIndex(0)
-                self.label.setCurrentIndex(0)
+                # self.date.setDate(QDate.currentDate())
+                # self.category.setCurrentIndex(0)
+                # self.label.setCurrentIndex(0)
                 self.description.clear()
 
                 self.show_recently_added()
@@ -215,7 +237,7 @@ class AddTransactionPage(QWidget):
         self.description.clear()
 
 
-    def show_recently_added(self):
+    def show_recently_added(self, amount = 5):
         transactions = get_transactions()
         self.expense_history.setRowCount(0)
 
@@ -225,19 +247,53 @@ class AddTransactionPage(QWidget):
         for item in transactions:
             cat_name = cat_pairs.get(item['category_id'], '')
             lab_name = lab_pairs.get(item['label_id'], '')
+            amount_value = f'{item['amount_cents'] / 100:.2f}'
 
             self.expense_history.insertRow(row)
-            self.expense_history.setItem(row, 0, QTableWidgetItem(item["transaction_type"]))
-            self.expense_history.setItem(row, 1, QTableWidgetItem(str(item["amount"])))
-            self.expense_history.setItem(row, 2, QTableWidgetItem(item["date"]))
-            self.expense_history.setItem(row, 3, QTableWidgetItem(cat_name))
-            self.expense_history.setItem(row, 4, QTableWidgetItem(lab_name))
+            self.expense_history.setItem(row, 0, QTableWidgetItem(item["date"]))
+            self.expense_history.setItem(row, 1, QTableWidgetItem('$ ' + str(amount_value)))
+            self.expense_history.setItem(row, 2, QTableWidgetItem(item["transaction_type"]))
+            self.expense_history.setItem(row, 3, QTableWidgetItem(lab_name))
+            self.expense_history.setItem(row, 4, QTableWidgetItem(cat_name))
             if item["description"]:
                 self.expense_history.setItem(row, 5, QTableWidgetItem(item["description"]))
 
-            print(f'{item["transaction_type"]}, {item["amount"]}, {item["date"]},{item["category_id"]},{item["label_id"]},{item["description"]}')
+            self.expense_history.setItem(row, 6, QTableWidgetItem(str(item['id'])))
             
+
             row += 1
+            if row == amount:
+                break
+            
+            print(f'{item["transaction_type"]}, {item["amount_cents"]}, {item["date"]},{item["category_id"]},{item["label_id"]},{item["description"]}')
+
+
+    def show_transaction_menu(self, pos):
+        item = self.expense_history.itemAt(pos)
+
+        if not item:
+            return
+        
+        row = item.row()
+        trans_id = int(self.expense_history.item(row,6).text())
+        trans_id = int(self.expense_history.item(row, 6).text())
+
+        menu = QMenu(self)
+        edit_action = menu.addAction("Edit")
+        remove_action = menu.addAction("Remove")
+
+        action = menu.exec(self.expense_history.viewport().mapToGlobal(pos))
+
+
+        if action == edit_action:
+            pass
+        elif action == remove_action:
+            self.remove_transaction(trans_id)
+
+
+    def remove_transaction(self, trans_id):
+        if delete_transaction(trans_id):
+            self.show_recently_added()
 
 
 class SettingsPage(QWidget):
@@ -372,6 +428,7 @@ class CategoriesLabelsSettings(QWidget):
 
             insert_categories(name, color)
             self.show_categories()
+            self.show_labels()
 
         else:
             print("canceled")
@@ -424,6 +481,7 @@ class CategoriesLabelsSettings(QWidget):
 
                 update_categories(name, color, cat_id)
                 self.show_categories()
+                self.show_labels()
 
         else:
             return

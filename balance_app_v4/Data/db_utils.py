@@ -52,7 +52,7 @@ def create_tables():
     CREATE TABLE IF NOT EXISTS transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         transaction_type TEXT,
-        amount INTEGER NOT NULL,
+        amount_cents INTEGER NOT NULL,
         date TEXT NOT NULL,
         category_id INTEGER,
         label_id INTEGER,
@@ -198,16 +198,16 @@ def delete_labels(label_id):
     return True
 
 
-def insert_transaction(trans_type, amount, date, cat, lab, desc):
+def insert_transaction(trans_type, amount_cents, date, cat, lab, desc):
     query = QSqlQuery("""
                     INSERT INTO transactions 
-                        (transaction_type, amount, date, category_id, label_id, description)
+                        (transaction_type, amount_cents, date, category_id, label_id, description)
                     VALUES
                         (?,?,?,?,?,?)
                 """)
     
     query.addBindValue(trans_type)
-    query.addBindValue(amount)
+    query.addBindValue(amount_cents)
     query.addBindValue(date)
     query.addBindValue(cat)
     query.addBindValue(lab)
@@ -222,6 +222,7 @@ def insert_transaction(trans_type, amount, date, cat, lab, desc):
 def get_transactions():
     query = QSqlQuery("""
                     SELECT * FROM transactions
+                    ORDER BY date DESC
                     """)
 
     transaction_list = []
@@ -230,7 +231,7 @@ def get_transactions():
         transaction_list.append({
             'id': query.value(0),
             'transaction_type': query.value(1),
-            'amount': query.value(2),
+            'amount_cents': query.value(2),
             'date': query.value(3),
             'category_id': query.value(4),
             'label_id': query.value(5),
@@ -238,6 +239,22 @@ def get_transactions():
         })
     
     return transaction_list
+
+
+def delete_transaction(trans_id):
+    query = QSqlQuery("""
+                    DELETE from transactions
+                    WHERE id = ?
+                    """)
+    
+    query.addBindValue(trans_id)
+
+
+    if not query.exec():
+        print(f"Error deleting transaction: {query.lastError().text()}")
+        return False
+    return True
+
 
 
 def tmp():

@@ -1,9 +1,11 @@
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedWidget
 )
+from AppUtils.balance_utils import (
+    OverviewPage, SettingsPage, AddTransactionPage, CategoriesLabelsSettings
+    )
 from PyQt6.QtCore import Qt, QEvent, QObject
 from Data.db_utils import db_init, create_tables
-from AppUtils.balance_utils import SettingsPage, AddTransactionPage, CategoriesLabelsSettings
 
 
 class PlaceHolderWidget(QWidget):
@@ -13,6 +15,8 @@ class PlaceHolderWidget(QWidget):
         label = QLabel(text)
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(label)
+        self.setMouseTracking(True)
+        label.setMouseTracking(True)
 
 
 class BalanceApp(QWidget):
@@ -21,8 +25,9 @@ class BalanceApp(QWidget):
         
         self.setWindowTitle("Balance App v4")
         self.resize(400,475)
-        self.setMinimumSize(200, 200)
+        self.setMinimumSize(200,  200)
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
+        self.setMouseTracking(True)
 
         # Resize variables
         self.resizing_left = False
@@ -32,8 +37,7 @@ class BalanceApp(QWidget):
 
         self.drag_pos = None
         self.edge_margin = 8 # Pixels from edge where resize cursor appears
-        self.setMouseTracking(True)
-
+       
         # Main layout
         self.main_layout = QVBoxLayout()
         self.main_layout.setContentsMargins(0,0,0,0)
@@ -42,14 +46,12 @@ class BalanceApp(QWidget):
         # Title layout
         self.title_bar = QWidget()
         self.title_bar.setFixedHeight(32)
-        self.title_bar.setMouseTracking(True)
         self.title_bar.installEventFilter(self) # for double-click detection
 
         self.title_layout = QHBoxLayout(self.title_bar)
         self.title_layout.setContentsMargins(8,0,8,0)
 
         self.title_label = QLabel("Balance App")
-        self.title_label.setMouseTracking(True)
         self.btn_min = QPushButton("_")
         self.btn_max = QPushButton("□")  #🗗 🗖
         self.btn_close = QPushButton("×")
@@ -62,10 +64,9 @@ class BalanceApp(QWidget):
 
         # Content 
         self.content_stack = QStackedWidget()
-        self.content_stack.setMouseTracking(True)
-
+        
         #Creating pages with the PlaceHolderWidget class
-        self.overview_page = PlaceHolderWidget("Overview Page")
+        self.overview_page = OverviewPage()
         self.history_page = PlaceHolderWidget("History Page")
         self.add_transaction_page = AddTransactionPage()
         self.calendar_page = PlaceHolderWidget("Calendar Page")
@@ -116,6 +117,7 @@ class BalanceApp(QWidget):
         self.btn_calendar_view.clicked.connect(lambda: self.content_stack.setCurrentIndex(3))
         self.btn_settings.clicked.connect(lambda: self.content_stack.setCurrentIndex(4))
 
+        self.mouse_tracked_widgets()
     
     # this function was made exclusively in case the user edits categories or labels
     # if he goes back to the ADD page, the combo boxes will be updated.
@@ -242,8 +244,13 @@ class BalanceApp(QWidget):
     def mouseMoveEvent(self, event):
         pos = event.pos()
 
+        if self.isMaximized():
+            self.unsetCursor()
+            return super().mouseMoveEvent(event)
+
         cursor_shape = self.get_resize_cursor_shape(pos)
-        self.setCursor(cursor_shape)
+        if self.cursor().shape() != cursor_shape:
+            self.setCursor(cursor_shape)
         # print(cursor_shape) testing to see if it was working
 
         if event.buttons() == Qt.MouseButton.LeftButton and self.drag_pos:
@@ -292,9 +299,25 @@ class BalanceApp(QWidget):
         super().mouseReleaseEvent(event)
 
 
+    def mouse_tracked_widgets(self):
+        self.setMouseTracking(True)
+        self.title_bar.setMouseTracking(True)
+        self.title_label.setMouseTracking(True)
+        self.btn_min.setMouseTracking(True)
+        self.btn_max.setMouseTracking(True)
+        self.btn_close.setMouseTracking(True)
+        self.content_stack.setMouseTracking(True)
+        self.bottom_bar.setMouseTracking(True)
+        self.btn_overview.setMouseTracking(True)
+        self.btn_history.setMouseTracking(True)
+        self.btn_add_transaction.setMouseTracking(True)
+        self.btn_calendar_view.setMouseTracking(True)
+        self.btn_settings.setMouseTracking(True)
+
+
 if __name__ == '__main__':
     app = QApplication([])
-    
+
     if db_init():
         create_tables()
     main_window = BalanceApp()

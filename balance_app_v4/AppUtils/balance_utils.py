@@ -8,6 +8,170 @@ from Data.db_utils import (
 from PyQt6.QtCore import  pyqtSignal, QDate, Qt, QLocale
 
 
+class OverviewPage(QWidget):
+    def __init__(self):
+        super().__init__()
+        
+        layout = QVBoxLayout(self)
+        row0 = QHBoxLayout()
+        row1 = QHBoxLayout()
+        row2 = QHBoxLayout()
+        row3 = QHBoxLayout()
+
+        self.btn_choice = 'this month'
+        self.btn_this_month  = QPushButton("This month")
+        self.btn_last_month = QPushButton("Last month")
+        self.btn_last_three_months = QPushButton("Last 3 months")
+
+        row0.addWidget(self.btn_this_month)
+        row0.addWidget(self.btn_last_month)
+        row0.addWidget(self.btn_last_three_months)
+
+        self.income_label = QLabel("Income:")
+        self.expense_label = QLabel("Expense:")
+        self.income = QLineEdit()
+        self.expense = QLineEdit()
+        self.income.setReadOnly(True)
+        self.expense.setReadOnly(True)
+
+
+        row1.addWidget(self.income_label)
+        row1.addWidget(self.income)
+        row1.addWidget(self.expense_label)
+        row1.addWidget(self.expense)
+
+        self.fuel_label = QLabel("Fuel:")
+        self.fuel = QLineEdit()
+        self.fuel.setReadOnly(True)
+        self.supermarket_label = QLabel("Supermarket:")
+        self.supermarket = QLineEdit()
+        self.supermarket.setReadOnly(True)
+
+        row2.addWidget(self.fuel_label)
+        row2.addWidget(self.fuel)
+        row2.addWidget(self.supermarket_label)
+        row2.addWidget(self.supermarket)
+
+        self.profit_label = QLabel("Profit:")
+        self.profit = QLineEdit()
+        self.profit.setReadOnly(True)
+
+        row3.addWidget(self.profit_label)
+        row3.addWidget(self.profit)
+
+        layout.addLayout(row0)
+        layout.addLayout(row1)
+        layout.addLayout(row2)
+        layout.addLayout(row3)
+        layout.addStretch()
+
+        self.mouse_tracked_widgets()
+        self.get_statement_data('this month')
+        self.btn_this_month.clicked.connect(self.this_month_btn)
+        self.btn_last_month.clicked.connect(self.last_month_btn)    
+        self.btn_last_three_months.clicked.connect(self.last_three_btn)
+
+   
+    def this_month_btn(self):
+        self.btn_choice = self.btn_this_month.text()
+        self.get_statement_data(self.btn_choice)
+
+    
+    def last_month_btn(self):
+        self.btn_choice = self.btn_last_month.text()
+        self.get_statement_data(self.btn_choice)
+
+    
+    def last_three_btn(self):
+        self.btn_choice = self.btn_last_three_months.text()
+        self.get_statement_data(self.btn_choice)
+
+
+    def get_statement_data(self, period):
+        today = QDate.currentDate()
+        transactions = get_transactions()
+        
+        if period.lower() == 'this month':
+            first_day = QDate(today.year(), today.month(), 1)
+            last_day = first_day.addMonths(1).addDays(-1)
+
+        elif period.lower() == 'last month':
+            last_month = today.addMonths(-1)
+            first_day = QDate(last_month.year(), last_month.month(), 1)
+            last_day = first_day.addMonths(1).addDays(-1)
+                  
+        elif period.lower() == 'last 3 months':
+            month = today.addMonths(-2)
+            first_day = QDate(month.year(), month.month(), 1)
+            last_day = first_day.addMonths(3).addDays(-1)
+
+        income = 0
+        expense = 0
+        fuel = 0
+        supermarket = 0
+        profit = 0
+
+        labels = get_labels()
+        fuel_id = None
+        supermarket_id = None
+        for item in labels:
+            if item['name'].lower() == 'fuel':
+                fuel_id = item['id']
+            elif item['name'].lower() == 'supermarket':
+                supermarket_id = item['id']
+
+        
+        for item in transactions:
+            item_date = QDate.fromString(item['date'], 'MM-dd-yyyy')
+                 
+            if first_day <= item_date and item_date <= last_day:
+                if item['transaction_type'].lower() == 'income':
+                    income += item['amount_cents']
+                elif item['transaction_type'].lower() == 'expense':
+                    expense += item['amount_cents']
+
+                    if item['label_id'] == fuel_id:
+                        fuel += item['amount_cents']
+                    elif item['label_id'] == supermarket_id:
+                        supermarket += item['amount_cents']
+
+        profit = income - expense
+        
+        amount_list = [
+            self.formatted_value(income),
+            self.formatted_value(expense),
+            self.formatted_value(fuel),
+            self.formatted_value(supermarket),
+            self.formatted_value(profit)
+        ]
+        self.income.setText(str(amount_list[0]))
+        self.expense.setText(str(amount_list[1]))
+        self.fuel.setText(str(amount_list[2]))
+        self.supermarket.setText(str(amount_list[3]))
+        self.profit.setText(str(amount_list[4]))
+
+      
+    def formatted_value(self, value):
+        return f'{(value/100):.2f}'
+        
+
+    def mouse_tracked_widgets(self):
+        self.setMouseTracking(True)
+        self.income_label.setMouseTracking(True)
+        self.income.setMouseTracking(True)
+        self.expense_label.setMouseTracking(True)
+        self.expense.setMouseTracking(True)
+        self.fuel_label.setMouseTracking(True)
+        self.fuel.setMouseTracking(True)
+        self.supermarket_label.setMouseTracking(True)
+        self.supermarket.setMouseTracking(True)
+        self.profit_label.setMouseTracking(True)
+        self.profit.setMouseTracking(True)
+        self.btn_this_month.setMouseTracking(True)
+        self.btn_last_month.setMouseTracking(True)
+        self.btn_last_three_months.setMouseTracking(True)
+
+
 class AddTransactionPage(QWidget):
     def __init__(self):
         super().__init__()
@@ -21,7 +185,7 @@ class AddTransactionPage(QWidget):
         top_buttons.addWidget(self.income_btn)
         top_buttons.addWidget(self.expense_btn)
         self.transaction_type = self.get_transaction_type()
-        
+
         layout.addLayout(top_buttons)
         
         row1 = QHBoxLayout()
@@ -31,7 +195,7 @@ class AddTransactionPage(QWidget):
         row5 = QHBoxLayout()
         row6 = QHBoxLayout()
 
-        amount_label = QLabel("Amount:")
+        self.amount_label = QLabel("Amount:")
         self.amount = QDoubleSpinBox()
         self.amount.setDecimals(2)
         self.amount.setMinimum(0.00)
@@ -40,33 +204,33 @@ class AddTransactionPage(QWidget):
         self.amount.setSingleStep(1)
         self.amount.setLocale(QLocale('en_US'))
         self.amount.clear()
-        date_label = QLabel("Date:")
+        self.date_label = QLabel("Date:")
         self.date = QDateEdit()
         self.date.setDate(QDate.currentDate())
 
-        row1.addWidget(amount_label)
+        row1.addWidget(self.amount_label)
         row1.addWidget(self.amount)
-        row1.addWidget(date_label)
+        row1.addWidget(self.date_label)
         row1.addWidget(self.date)
         layout.addLayout(row1)
 
-        categories_label = QLabel("Category:")
+        self.category_label = QLabel("Category:")
         self.category = QComboBox()
         self.category.currentIndexChanged.connect(self.load_labels)
                
-        labels_label = QLabel("Labels:")
+        self.labels_label = QLabel("Labels:")
         self.label = QComboBox()
       
-        row2.addWidget(categories_label)
+        row2.addWidget(self.category_label)
         row2.addWidget(self.category)
-        row2.addWidget(labels_label)
+        row2.addWidget(self.labels_label)
         row2.addWidget(self.label)
         layout.addLayout(row2)
 
 
-        description_label = QLabel("Description:")
+        self.description_label = QLabel("Description:")
         self.description = QLineEdit()
-        row3.addWidget(description_label)
+        row3.addWidget(self.description_label)
         row3.addWidget(self.description)
         layout.addLayout(row3)
         
@@ -76,7 +240,8 @@ class AddTransactionPage(QWidget):
         row4.addWidget(self.cancel_btn)
         layout.addLayout(row4)
 
-        row5.addWidget(QLabel("Recently Added:"))
+        self.recently_added_label = QLabel("Recently Added:")
+        row5.addWidget(self.recently_added_label)
         
         self.expense_history = QTableWidget()
         self.expense_history.setColumnCount(7)
@@ -96,6 +261,7 @@ class AddTransactionPage(QWidget):
         self.cancel_btn.clicked.connect(self.cancel_transaction)
 
         self.show_recently_added()
+        self.mouse_tracked_widgets()
 
 
     def load_categories(self):
@@ -225,7 +391,7 @@ class AddTransactionPage(QWidget):
                 self.description.clear()
 
                 self.show_recently_added()
-
+                
     
     def cancel_transaction(self):
         self.income_btn.setChecked(True)
@@ -244,10 +410,13 @@ class AddTransactionPage(QWidget):
         row = 0
         cat_pairs = {cat['id']: cat['name'] for cat in get_categories()}
         lab_pairs = {lab['id']: lab['name'] for lab in get_labels()}
+        
+        
         for item in transactions:
             cat_name = cat_pairs.get(item['category_id'], '')
             lab_name = lab_pairs.get(item['label_id'], '')
             amount_value = f'{item['amount_cents'] / 100:.2f}'
+
 
             self.expense_history.insertRow(row)
             self.expense_history.setItem(row, 0, QTableWidgetItem(item["date"]))
@@ -296,24 +465,54 @@ class AddTransactionPage(QWidget):
             self.show_recently_added()
 
 
+    def mouse_tracked_widgets(self):
+        self.setMouseTracking(True)
+        self.income_btn.setMouseTracking(True)
+        self.expense_btn.setMouseTracking(True)    
+        self.amount_label.setMouseTracking(True)
+        self.amount.setMouseTracking(True)
+        self.date_label.setMouseTracking(True)
+        self.date.setMouseTracking(True)
+        self.category_label.setMouseTracking(True)
+        self.category.setMouseTracking(True)
+        self.labels_label.setMouseTracking(True)
+        self.label.setMouseTracking(True)
+        self.description.setMouseTracking(True)
+        self.description_label.setMouseTracking(True)
+        self.save_btn.setMouseTracking(True)
+        self.cancel_btn.setMouseTracking(True)
+        self.recently_added_label.setMouseTracking(True)
+        self.expense_history.setMouseTracking(True) 
+
+
 class SettingsPage(QWidget):
     navigate = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout(self)
-        account = QPushButton("Account")
-        theme = QPushButton("Theme")
-        backup_sync = QPushButton("Back up / Sync")
+        self.account = QPushButton("Account")
+        self.theme = QPushButton("Theme")
+        self.backup_sync = QPushButton("Back up / Sync")
         self.cat_labels = QPushButton("Categories and Labels")
 
-        layout.addWidget(account)
-        layout.addWidget(theme)
-        layout.addWidget(backup_sync)
+        layout.addWidget(self.account)
+        layout.addWidget(self.theme)
+        layout.addWidget(self.backup_sync)
         layout.addWidget(self.cat_labels)
         layout.addStretch()
 
         self.cat_labels.clicked.connect(lambda: self.navigate.emit("cat_labels"))
+
+        self.mouse_tracked_widgets()
+    
+
+    def mouse_tracked_widgets(self):
+        self.setMouseTracking(True)
+        self.account.setMouseTracking(True)
+        self.theme.setMouseTracking(True)
+        self.backup_sync.setMouseTracking(True)
+        self.cat_labels.setMouseTracking(True)
 
 
 class CategoriesLabelsSettings(QWidget):
@@ -322,7 +521,8 @@ class CategoriesLabelsSettings(QWidget):
 
         self.layout = QVBoxLayout(self)
 
-        self.layout.addWidget(QLabel("Categories"))
+        self.category_label = QLabel("Categories:")
+        self.layout.addWidget(self.category_label)
         self.categories_table = QTableWidget()
         self.categories_table.setColumnCount(4)
         self.categories_table.setHorizontalHeaderLabels(['Name', 'Color', 'Icon', 'ID'])
@@ -341,8 +541,10 @@ class CategoriesLabelsSettings(QWidget):
         self.layout.addLayout(self.cat_btns_row)
         self.show_categories()
 
+
         self.cat_pairs = [] #used to manipulate category_name in edit or remove buttons
-        self.layout.addWidget(QLabel("Labels"))
+        self.labels_label = QLabel('Labels:')
+        self.layout.addWidget(self.labels_label)
         self.labels_table = QTableWidget()
         self.labels_table.setColumnCount(5)
         self.labels_table.setHorizontalHeaderLabels(["Name", "Color", "Category", "ID", "category_id"])
@@ -370,6 +572,8 @@ class CategoriesLabelsSettings(QWidget):
         self.add_label_btn.clicked.connect(self.add_label)
         self.edit_label_btn.clicked.connect(self.edit_label)
         self.remove_label_btn.clicked.connect(self.remove_label)
+
+        self.mouse_tracked_widgets()
 
 
     def show_categories(self):
@@ -632,6 +836,20 @@ class CategoriesLabelsSettings(QWidget):
             else:
                 return
 
+
+    def mouse_tracked_widgets(self):
+        self.setMouseTracking(True)
+        self.category_label.setMouseTracking(True)
+        self.categories_table.setMouseTracking(True)
+        self.add_category_btn.setMouseTracking(True)
+        self.edit_category_btn.setMouseTracking(True)
+        self.remove_category_btn.setMouseTracking(True)
+        self.labels_label.setMouseTracking(True)
+        self.labels_table.setMouseTracking(True)
+        self.add_label_btn.setMouseTracking(True)
+        self.edit_label_btn.setMouseTracking(True)
+        self.remove_label_btn.setMouseTracking(True)
+ 
 
 # Later I must refactor add/edit categories and transform them into a class
 class AddEditLabels(QDialog):

@@ -8,6 +8,61 @@ from Data.db_utils import (
 from PyQt6.QtCore import  pyqtSignal, QDate, Qt, QLocale
 
 
+class HistoryPage(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        layout = QVBoxLayout(self)
+        row1 = QHBoxLayout()
+        
+
+        self.btn_this_month = QPushButton('This month')
+        self.btn_last_month = QPushButton('Last month')
+        self.btn_last_three_months = QPushButton('Last 3 months')
+        self.btn_choice = self.btn_this_month.text()
+
+        row1.addWidget(self.btn_this_month)
+        row1.addWidget(self.btn_last_month)
+        row1.addWidget(self.btn_last_three_months)
+
+        self.history_table = QTableWidget()
+        layout.addLayout(row1)
+        layout.addWidget(self.history_table)
+
+        self.mouse_tracked_widgets()
+        self.btn_this_month.clicked.connect(self.this_month_clicked)
+        self.btn_last_month.clicked.connect(self.last_month_clicked)
+        self.btn_last_three_months.clicked.connect(self.last_three_months_clicked)
+
+
+    def this_month_clicked(self):
+        self.btn_choice = self.btn_this_month.text()
+        self.show_transaction_history()
+
+
+    def last_month_clicked(self):
+        self.btn_last_month = self.btn_last_month.text()
+        self.show_transaction_history()
+
+
+    def last_three_months_clicked(self):
+        self.btn_last_three_months.text()
+        self.show_transaction_history()
+
+
+    def show_transaction_history(self):
+        transactions = get_transactions()
+
+        if self.btn_choice.lower() == 'this month':
+            pass
+
+
+    def mouse_tracked_widgets(self):
+        self.btn_this_month.setMouseTracking(True)
+        self.btn_last_month.setMouseTracking(True)
+        self.btn_last_three_months.setMouseTracking(True)
+
+
 class OverviewPage(QWidget):
     def __init__(self):
         super().__init__()

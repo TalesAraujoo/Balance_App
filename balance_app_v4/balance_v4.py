@@ -2,7 +2,8 @@ from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QStackedWidget
 )
 from AppUtils.balance_utils import (
-    OverviewPage, SettingsPage, AddTransactionPage, CategoriesLabelsSettings
+    OverviewPage, SettingsPage, AddTransactionPage, CategoriesLabelsSettings,
+    HistoryPage
     )
 from PyQt6.QtCore import Qt, QEvent, QObject
 from Data.db_utils import db_init, create_tables
@@ -67,7 +68,7 @@ class BalanceApp(QWidget):
         
         #Creating pages with the PlaceHolderWidget class
         self.overview_page = OverviewPage()
-        self.history_page = PlaceHolderWidget("History Page")
+        self.history_page = HistoryPage()
         self.add_transaction_page = AddTransactionPage()
         self.calendar_page = PlaceHolderWidget("Calendar Page")
         self.settings_page = SettingsPage()

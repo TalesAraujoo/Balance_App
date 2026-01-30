@@ -19,6 +19,10 @@ class HistoryPage(QWidget):
         self.btn_this_month = QPushButton('This month')
         self.btn_last_month = QPushButton('Last month')
         self.btn_last_three_months = QPushButton('Last 3 months')
+        self.btn_this_month.setCheckable(True)
+        self.btn_this_month.setChecked(True)
+        self.btn_last_month.setCheckable(True)
+        self.btn_last_three_months.setCheckable(True)
         self.btn_choice = self.btn_this_month.text()
 
         row1.addWidget(self.btn_this_month)
@@ -26,10 +30,16 @@ class HistoryPage(QWidget):
         row1.addWidget(self.btn_last_three_months)
 
         self.history_table = QTableWidget()
+        self.history_table.setColumnCount(7)
+        self.history_table.setHorizontalHeaderLabels(['Date', 'Amount', 'Type', 'Label', 'Category', 'Description', 'ID'])
+        self.history_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.history_table.customContextMenuRequested.connect(self.show_transaction_menu)
+        self.history_table.hideColumn(6)
         layout.addLayout(row1)
         layout.addWidget(self.history_table)
 
         self.mouse_tracked_widgets()
+        self.show_transaction_history()
         self.btn_this_month.clicked.connect(self.this_month_clicked)
         self.btn_last_month.clicked.connect(self.last_month_clicked)
         self.btn_last_three_months.clicked.connect(self.last_three_months_clicked)
@@ -38,29 +48,170 @@ class HistoryPage(QWidget):
     def this_month_clicked(self):
         self.btn_choice = self.btn_this_month.text()
         self.show_transaction_history()
+        
+        self.btn_this_month.setChecked(True)
+        self.btn_last_month.setChecked(False)
+        self.btn_last_three_months.setChecked(False)
 
 
     def last_month_clicked(self):
-        self.btn_last_month = self.btn_last_month.text()
+        self.btn_choice = self.btn_last_month.text()
         self.show_transaction_history()
+        
+        self.btn_last_month.setChecked(True)
+        self.btn_this_month.setChecked(False)
+        self.btn_last_three_months.setChecked(False)
 
 
     def last_three_months_clicked(self):
-        self.btn_last_three_months.text()
+        self.btn_choice = self.btn_last_three_months.text()
         self.show_transaction_history()
+        
+        self.btn_last_three_months.setChecked(True)
+        self.btn_this_month.setChecked(False)
+        self.btn_last_month.setChecked(False)
 
+
+    def get_desc_transaction_list(self):
+        transactions = get_transactions()
+        tmp_trans = []
+        desc_trans = []
+
+        tmp_date = ''
+        for i, item in enumerate(transactions):
+            # print(item)
+            if transactions:
+                if not tmp_date:
+                    tmp_date = QDate.fromString(item['date'], 'MM-dd-yyyy')
+                    tmp_trans.append(item)
+                else:
+                    if tmp_date == QDate.fromString(item['date'], 'MM-dd-yyyy'):
+                        tmp_trans.append(item)
+                    
+                    else:
+                        
+                        while len(tmp_trans) != 0:
+                            highest_id_index = None 
+                            highest = None
+                            for i in range(len(tmp_trans)):
+                                if not highest_id_index:
+                                    highest = tmp_trans[i]['id']
+                                    highest_id_index = i
+                                else:
+                                    if highest < tmp_trans[i]['id']:
+                                        highest = tmp_trans[i]['id']
+                                        highest_id_index = i
+                            if tmp_trans:
+                                desc_trans.append(tmp_trans.pop(highest_id_index))
+                        tmp_trans = []
+                        tmp_date = QDate.fromString(item['date'], 'MM-dd-yyyy')
+                        tmp_trans.append(item)
+        
+            
+        while len(tmp_trans) != 0:
+            highest_id_index = 0
+            highest = tmp_trans[0]['id']
+
+            for j in range(len(tmp_trans)):
+                if tmp_trans[j]['id'] > highest:
+                    highest = tmp_trans[j]['id']
+                    highest_id_index = j
+
+            desc_trans.append(tmp_trans.pop(highest_id_index))
+
+        return desc_trans
+    
 
     def show_transaction_history(self):
-        transactions = get_transactions()
+        desc_trans = self.get_desc_transaction_list()
+        today = QDate.currentDate()
+        start_date = None
+        end_date = None
 
         if self.btn_choice.lower() == 'this month':
+            start_date = QDate(today.year(), today.month(), 1)
+            end_date = start_date.addMonths(1).addDays(-1)
+
+        elif self.btn_choice.lower() == 'last month':
+            last_month = today.addMonths(-1)
+            start_date = QDate(last_month.year(), last_month.month(), 1)
+            end_date = start_date.addMonths(1).addDays(-1)
+
+        elif self.btn_choice.lower() == self.btn_last_three_months.text().lower():
+            month = today.addMonths(-2)
+            start_date = QDate(month.year(), month.month(), 1)
+            current_month = QDate(today.year(), today.month(), 1)
+            end_date = current_month.addMonths(1).addDays(-1)
+        
+
+        self.history_table.setRowCount(0)    
+        row = 0
+        cat_pairs = {cat['id']: cat['name'] for cat in get_categories()}
+        lab_pairs = {lab['id']: lab['name'] for lab in get_labels()}
+
+        tmp_income = 0
+        tmp_expense = 0
+       
+        for item in desc_trans:
+            item_date = QDate.fromString(item['date'], 'MM-dd-yyyy')
+
+            if start_date <= item_date and item_date <= end_date: 
+
+                cat_name = cat_pairs.get(item['category_id'], '')
+                lab_name = lab_pairs.get(item['label_id'], '')
+                amount = str(f'{(item["amount_cents"] / 100):.2f}')
+
+                self.history_table.insertRow(row)
+                self.history_table.setItem(row, 0, QTableWidgetItem(item['date']))
+                self.history_table.setItem(row, 1, QTableWidgetItem(amount))
+                self.history_table.setItem(row, 2, QTableWidgetItem(item['transaction_type']))
+                self.history_table.setItem(row, 3, QTableWidgetItem(lab_name))
+                self.history_table.setItem(row, 4, QTableWidgetItem(cat_name))
+                self.history_table.setItem(row, 5, QTableWidgetItem(item['description']))
+                self.history_table.setItem(row, 6, QTableWidgetItem(str(item['id'])))
+                row += 1
+
+                if item['transaction_type'].lower() == 'income':
+                    tmp_income += item['amount_cents']
+                else:
+                    tmp_expense += item['amount_cents']
+
+
+        tmp_income = f'{tmp_income / 100 :.2f}'
+        tmp_expense = f'{tmp_expense / 100 :.2f}'
+
+        print(f'Inc: {tmp_income} - Exp: {tmp_expense}')
+
+
+    def show_transaction_menu(self, pos):
+        item = self.history_table.itemAt(pos)
+
+        if not item:
+            return
+        
+        row = item.row()
+        trans_id = int(self.history_table.item(row,6).text())
+        trans_id = int(self.history_table.item(row, 6).text())
+
+        menu = QMenu(self)
+        edit_action = menu.addAction("Edit")
+        remove_action = menu.addAction("Remove")
+
+        action = menu.exec(self.history_table.viewport().mapToGlobal(pos))
+
+
+        if action == edit_action:
             pass
+        elif action == remove_action:
+            self.remove_transaction(trans_id)
 
 
     def mouse_tracked_widgets(self):
+        self.setMouseTracking(True)
         self.btn_this_month.setMouseTracking(True)
         self.btn_last_month.setMouseTracking(True)
         self.btn_last_three_months.setMouseTracking(True)
+        self.history_table.setMouseTracking(True)
 
 
 class OverviewPage(QWidget):
@@ -77,6 +228,10 @@ class OverviewPage(QWidget):
         self.btn_this_month  = QPushButton("This month")
         self.btn_last_month = QPushButton("Last month")
         self.btn_last_three_months = QPushButton("Last 3 months")
+        self.btn_this_month.setCheckable(True)
+        self.btn_this_month.setChecked(True)
+        self.btn_last_month.setCheckable(True)
+        self.btn_last_three_months.setCheckable(True)
 
         row0.addWidget(self.btn_this_month)
         row0.addWidget(self.btn_last_month)
@@ -121,7 +276,7 @@ class OverviewPage(QWidget):
         layout.addStretch()
 
         self.mouse_tracked_widgets()
-        self.get_statement_data('this month')
+        self.get_statement_data(self.btn_this_month.text())
         self.btn_this_month.clicked.connect(self.this_month_btn)
         self.btn_last_month.clicked.connect(self.last_month_btn)    
         self.btn_last_three_months.clicked.connect(self.last_three_btn)
@@ -131,16 +286,28 @@ class OverviewPage(QWidget):
         self.btn_choice = self.btn_this_month.text()
         self.get_statement_data(self.btn_choice)
 
+        self.btn_this_month.setChecked(True)
+        self.btn_last_month.setChecked(False)
+        self.btn_last_three_months.setChecked(False)
+
     
     def last_month_btn(self):
         self.btn_choice = self.btn_last_month.text()
         self.get_statement_data(self.btn_choice)
+        
+        self.btn_last_month.setChecked(True)
+        self.btn_this_month.setChecked(False)
+        self.btn_last_three_months.setChecked(False)
 
     
     def last_three_btn(self):
         self.btn_choice = self.btn_last_three_months.text()
         self.get_statement_data(self.btn_choice)
-
+        
+        self.btn_last_three_months.setChecked(True)
+        self.btn_this_month.setChecked(False)
+        self.btn_last_month.setChecked(False)
+        
 
     def get_statement_data(self, period):
         today = QDate.currentDate()
@@ -296,13 +463,20 @@ class AddTransactionPage(QWidget):
         layout.addLayout(row4)
 
         self.recently_added_label = QLabel("Recently Added:")
+        self.show_label = QLabel("Show:")
+        self.show_combo_box = QComboBox()
+        self.show_combo_box.addItems(['5','10','20','30'])
+        self.show_combo_box.currentTextChanged.connect(self.show_recently_added)
         row5.addWidget(self.recently_added_label)
+        row5.addStretch()
+        row5.addWidget(self.show_label)
+        row5.addWidget(self.show_combo_box)
         
         self.expense_history = QTableWidget()
         self.expense_history.setColumnCount(7)
         self.expense_history.setHorizontalHeaderLabels(['Date', 'amount', 'type', 'label', 'category', 'description', 'ID'])
         self.expense_history.hideColumn(6)
-        self.expense_history.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.expense_history.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu) # ALlows right click
         self.expense_history.customContextMenuRequested.connect(self.show_transaction_menu)
         row6.addWidget(self.expense_history)
         layout.addLayout(row5)
@@ -458,24 +632,74 @@ class AddTransactionPage(QWidget):
         self.description.clear()
 
 
-    def show_recently_added(self, amount = 5):
+    def get_desc_transaction_list(self):
         transactions = get_transactions()
+        tmp_trans = []
+        desc_trans = []
+
+        tmp_date = ''
+        for i, item in enumerate(transactions):
+            
+            if transactions:
+                if not tmp_date:
+                    tmp_date = QDate.fromString(item['date'], 'MM-dd-yyyy')
+                    tmp_trans.append(item)
+                else:
+                    if tmp_date == QDate.fromString(item['date'], 'MM-dd-yyyy'):
+                        tmp_trans.append(item)
+                    
+                    else:
+                        
+                        while len(tmp_trans) != 0:
+                            highest_id_index = None 
+                            highest = None
+                            for i in range(len(tmp_trans)):
+                                if not highest_id_index:
+                                    highest = tmp_trans[i]['id']
+                                    highest_id_index = i
+                                else:
+                                    if highest < tmp_trans[i]['id']:
+                                        highest = tmp_trans[i]['id']
+                                        highest_id_index = i
+                            if tmp_trans:
+                                desc_trans.append(tmp_trans.pop(highest_id_index))
+                        tmp_trans = []
+                        tmp_date = QDate.fromString(item['date'], 'MM-dd-yyyy')
+                        tmp_trans.append(item)
+        
+            
+        while len(tmp_trans) != 0:
+            highest_id_index = 0
+            highest = tmp_trans[0]['id']
+
+            for j in range(len(tmp_trans)):
+                if tmp_trans[j]['id'] > highest:
+                    highest = tmp_trans[j]['id']
+                    highest_id_index = j
+
+            desc_trans.append(tmp_trans.pop(highest_id_index))
+
+        return desc_trans
+    
+
+    def show_recently_added(self):
+        desc_trans = self.get_desc_transaction_list()
         self.expense_history.setRowCount(0)
+        show_amount = int(self.show_combo_box.currentText())
 
         row = 0
         cat_pairs = {cat['id']: cat['name'] for cat in get_categories()}
         lab_pairs = {lab['id']: lab['name'] for lab in get_labels()}
         
         
-        for item in transactions:
+        for item in desc_trans:
             cat_name = cat_pairs.get(item['category_id'], '')
             lab_name = lab_pairs.get(item['label_id'], '')
-            amount_value = f'{item['amount_cents'] / 100:.2f}'
-
-
+            amount_value = str(f'{(item["amount_cents"] / 100) :.2f}')
+            
             self.expense_history.insertRow(row)
             self.expense_history.setItem(row, 0, QTableWidgetItem(item["date"]))
-            self.expense_history.setItem(row, 1, QTableWidgetItem('$ ' + str(amount_value)))
+            self.expense_history.setItem(row, 1, QTableWidgetItem('$ ' + amount_value))
             self.expense_history.setItem(row, 2, QTableWidgetItem(item["transaction_type"]))
             self.expense_history.setItem(row, 3, QTableWidgetItem(lab_name))
             self.expense_history.setItem(row, 4, QTableWidgetItem(cat_name))
@@ -484,14 +708,11 @@ class AddTransactionPage(QWidget):
 
             self.expense_history.setItem(row, 6, QTableWidgetItem(str(item['id'])))
             
-
             row += 1
-            if row == amount:
+            if row == show_amount:
                 break
             
-            print(f'{item["transaction_type"]}, {item["amount_cents"]}, {item["date"]},{item["category_id"]},{item["label_id"]},{item["description"]}')
-
-
+        
     def show_transaction_menu(self, pos):
         item = self.expense_history.itemAt(pos)
 
@@ -538,6 +759,8 @@ class AddTransactionPage(QWidget):
         self.cancel_btn.setMouseTracking(True)
         self.recently_added_label.setMouseTracking(True)
         self.expense_history.setMouseTracking(True) 
+        self.show_label.setMouseTracking(True)
+        self.show_combo_box.setMouseTracking(True)
 
 
 class SettingsPage(QWidget):
@@ -957,4 +1180,3 @@ class AddEditLabels(QDialog):
 
         ok_btn.clicked.connect(self.accept)
         cancel_btn.clicked.connect(self.reject)
-

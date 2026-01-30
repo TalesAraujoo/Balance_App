@@ -256,7 +256,6 @@ def delete_transaction(trans_id):
     return True
 
 
-
 def tmp():
     query = QSqlQuery("""
                     DROP TABLE transactions

@@ -133,6 +133,7 @@ class BalanceApp(QWidget):
     def show_settings_page(self):
         tmp_test = QLabel()
 
+
     def keyPressEvent(self, event):
         key = event.key()
         modifiers = event.modifiers()

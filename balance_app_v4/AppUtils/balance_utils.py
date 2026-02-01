@@ -191,8 +191,7 @@ class HistoryPage(QWidget):
         
         row = item.row()
         trans_id = int(self.history_table.item(row,6).text())
-        trans_id = int(self.history_table.item(row, 6).text())
-
+        
         menu = QMenu(self)
         edit_action = menu.addAction("Edit")
         remove_action = menu.addAction("Remove")
@@ -201,9 +200,80 @@ class HistoryPage(QWidget):
 
 
         if action == edit_action:
-            pass
+            self.edit_transaction(item)
         elif action == remove_action:
             self.remove_transaction(trans_id)
+
+
+    def edit_transaction(self, item):
+        dialog = QDialog()
+        dialog.setWindowTitle('Edit Transaction')
+        tmp_window = QVBoxLayout(dialog)
+
+        if item:
+            row = item.row()
+            row1 = QHBoxLayout()        
+            row2 = QHBoxLayout()        
+            row3 = QHBoxLayout()        
+            row4 = QHBoxLayout()        
+            row5 = QHBoxLayout()        
+            row6 = QHBoxLayout()        
+
+            row1.addWidget(QLabel('Date: '))
+            date_input = QLineEdit()
+            tmp_date = self.history_table.item(row, 0).text()
+            date_input.setText(tmp_date)
+            row1.addWidget(date_input)
+            tmp_window.addLayout(row1)
+
+            row2.addWidget(QLabel('Amount: '))
+            amount_input = QDoubleSpinBox()
+            amount_input.setDecimals(2)
+            amount_input.setMinimum(0.00)
+            amount_input.setMaximum(999999999.99)
+            amount_input.setPrefix('$ ')
+            amount_input.setSingleStep(1)
+            tmp_amount = self.history_table.item(row, 1).text()
+            amount_input.setValue(float(tmp_amount))
+            row2.addWidget(amount_input)
+            tmp_window.addLayout(row2)
+
+            row3.addWidget(QLabel('Type: '))
+            type_input = QLineEdit()
+            tmp_type = self.history_table.item(row, 2).text()
+            type_input.setText(tmp_type)
+            row3.addWidget(type_input)
+            tmp_window.addLayout(row3)
+
+            row4.addWidget(QLabel('Label: '))
+            label_input = QComboBox()
+
+            row4.addWidget(label_input)
+            tmp_window.addLayout(row4)
+
+
+            row5.addWidget(QLabel('Category: '))
+            cat_input = QComboBox()
+
+
+            row5.addWidget(cat_input)
+            tmp_window.addLayout(row5)
+
+
+            row6.addWidget(QLabel('Description: '))
+            description_input = QLineEdit()
+            tmp_description = self.history_table.item(row, 6).text()
+            description_input.setText(tmp_description)
+            row6.addWidget(description_input)
+            tmp_window.addLayout(row6)
+ 
+ 
+            result = dialog.exec()
+
+
+    def remove_transaction(self, trans_id):
+        if delete_transaction(trans_id):
+            self.show_transaction_history()
 
 
     def mouse_tracked_widgets(self):
